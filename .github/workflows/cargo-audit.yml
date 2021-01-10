@@ -1,9 +1,5 @@
 name: cargo audit
-on:
-  push:
-    paths:
-      - '**/Cargo.toml'
-      - '**/Cargo.lock'
+on: [push, pull_request]
 jobs:
   audit:
     runs-on: ubuntu-latest
