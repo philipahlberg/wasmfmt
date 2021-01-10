@@ -1,0 +1,13 @@
+name: cargo test
+on: [push, pull_request]
+jobs:
+  unit_tests:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - run: cargo test --lib --verbose
+  integration_tests:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - run: cargo test --test bin --verbose
