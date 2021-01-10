@@ -1,10 +1,10 @@
-use structopt::StructOpt;
+use std::fmt::{Display, Error as FormatError, Formatter};
 use std::fs;
 use std::io::{self, Read, Write};
 use std::path::PathBuf;
 use std::str::FromStr;
-use std::fmt::{Display, Formatter, Error as FormatError};
-use wasmfmt::{fmt, diff};
+use structopt::StructOpt;
+use wasmfmt::{diff, fmt};
 
 #[derive(StructOpt)]
 pub struct Options {
@@ -60,15 +60,11 @@ fn main() -> Result<(), Error> {
 
     let source = match options.file {
         // If there is a file specified, read its' content
-        Some(file) => {
-            fs::read_to_string(file.as_path())
-                .map_err(Error::Io)?
-        },
+        Some(file) => fs::read_to_string(file.as_path()).map_err(Error::Io)?,
         // If there is no file, read from stdin
         None => {
             let mut buffer = String::new();
-            io::stdin().read_to_string(&mut buffer)
-                .map_err(Error::Io)?;
+            io::stdin().read_to_string(&mut buffer).map_err(Error::Io)?;
             buffer
         }
     };
@@ -81,23 +77,22 @@ fn main() -> Result<(), Error> {
             match options.output {
                 // If there is an output file specified, write the result to it
                 Some(path) => {
-                    fs::write(path, formatted)
-                        .map_err(Error::Io)?;
-                },
+                    fs::write(path, formatted).map_err(Error::Io)?;
+                }
                 // If there is no file, write to stdout
                 None => {
-                    io::stdout().write_all(formatted.as_bytes())
+                    io::stdout()
+                        .write_all(formatted.as_bytes())
                         .map_err(Error::Io)?;
-                },
+                }
             };
-        },
+        }
         // When checking, highlight any mismatch and exit
         // with an error code if there are any mismatches
         Mode::Check => {
             if source != formatted {
                 let diff = diff(&source, &formatted);
-                io::stdout().write_all(diff.as_bytes())
-                        .map_err(Error::Io)?;
+                io::stdout().write_all(diff.as_bytes()).map_err(Error::Io)?;
             }
         }
     };

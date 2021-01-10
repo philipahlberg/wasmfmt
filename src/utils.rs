@@ -1,7 +1,8 @@
 use itertools::Itertools;
 
 pub(crate) fn indent(string: &str) -> String {
-    string.lines()
+    string
+        .lines()
         .map(|line| "\t".to_owned() + line)
         .intersperse("\n".to_owned())
         .collect()

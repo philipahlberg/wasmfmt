@@ -1,6 +1,6 @@
-mod fmt;
 mod diff;
+mod fmt;
 mod utils;
 
-pub use fmt::fmt;
 pub use diff::diff;
+pub use fmt::fmt;
