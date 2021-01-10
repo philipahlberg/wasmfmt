@@ -27,27 +27,31 @@ fn wasmfmt(args: &[&str]) -> Result<String, String> {
 #[test]
 fn add_desugar() {
     let expected = include_str!("data/output/add_desugar.wat");
-    let actual = wasmfmt(&["tests/data/input/add_desugar.wat"]).expect("failed to format add_desugar.wat");
+    let actual =
+        wasmfmt(&["tests/data/input/add_desugar.wat"]).expect("failed to format add_desugar.wat");
     assert_eq!(actual, expected);
 }
 
 #[test]
 fn add_sugar() {
     let expected = include_str!("data/output/add_sugar.wat");
-    let actual = wasmfmt(&["tests/data/input/add_desugar.wat"]).expect("failed to format add_sugar.wat");
+    let actual =
+        wasmfmt(&["tests/data/input/add_desugar.wat"]).expect("failed to format add_sugar.wat");
     assert_eq!(actual, expected);
 }
 
 #[test]
 fn fac_desugar() {
     let expected = include_str!("data/output/fac_desugar.wat");
-    let actual = wasmfmt(&["tests/data/input/fac_desugar.wat"]).expect("failed to format fac_desugar.wat");
+    let actual =
+        wasmfmt(&["tests/data/input/fac_desugar.wat"]).expect("failed to format fac_desugar.wat");
     assert_eq!(actual, expected);
 }
 
 #[test]
 fn fac_sugar() {
     let expected = include_str!("data/output/fac_sugar.wat");
-    let actual = wasmfmt(&["tests/data/input/fac_sugar.wat"]).expect("failed to format fac_sugar.wat");
+    let actual =
+        wasmfmt(&["tests/data/input/fac_sugar.wat"]).expect("failed to format fac_sugar.wat");
     assert_eq!(actual, expected);
 }
