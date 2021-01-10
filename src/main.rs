@@ -62,13 +62,13 @@ fn main() -> Result<(), Error> {
         // If there is a file specified, read its' content
         Some(file) => {
             fs::read_to_string(file.as_path())
-                .map_err(|error| Error::Io(error))?
+                .map_err(Error::Io)?
         },
         // If there is no file, read from stdin
         None => {
             let mut buffer = String::new();
             io::stdin().read_to_string(&mut buffer)
-                .map_err(|error| Error::Io(error))?;
+                .map_err(Error::Io)?;
             buffer
         }
     };
@@ -82,12 +82,12 @@ fn main() -> Result<(), Error> {
                 // If there is an output file specified, write the result to it
                 Some(path) => {
                     fs::write(path, formatted)
-                        .map_err(|error| Error::Io(error))?;
+                        .map_err(Error::Io)?;
                 },
                 // If there is no file, write to stdout
                 None => {
                     io::stdout().write_all(formatted.as_bytes())
-                        .map_err(|error| Error::Io(error))?;
+                        .map_err(Error::Io)?;
                 },
             };
         },
@@ -97,7 +97,7 @@ fn main() -> Result<(), Error> {
             if source != formatted {
                 let diff = diff(&source, &formatted);
                 io::stdout().write_all(diff.as_bytes())
-                        .map_err(|error| Error::Io(error))?;
+                        .map_err(Error::Io)?;
             }
         }
     };

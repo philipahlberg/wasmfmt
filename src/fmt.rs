@@ -1,17 +1,17 @@
 use wast::{BlockType, BrTableIndices, Export, ExportKind, Expression, Func, FuncKind, FunctionType, Id, Index, Instruction, Local, MemArg, Module, ModuleField, ModuleKind, NameAnnotation, Type, TypeDef, TypeUse, ValType, Wat, parser::{self, ParseBuffer}};
 use crate::utils::indent;
 
-pub fn fmt<'src>(source: &'src str) -> String {
+pub fn fmt(source: &str) -> String {
     let buffer = ParseBuffer::new(source).unwrap();
     let wat = parser::parse::<Wat>(&buffer).unwrap();
     fmt_wat(wat)
 }
 
-fn fmt_wat<'src>(wat: Wat<'src>) -> String {
+fn fmt_wat(wat: Wat) -> String {
     fmt_module(wat.module)
 }
 
-fn fmt_module<'src>(mut module: Module<'src>) -> String {
+fn fmt_module(mut module: Module) -> String {
     // TODO: Handle error
     module.resolve().unwrap();
     let mut buf = String::new();
@@ -27,7 +27,7 @@ fn fmt_module<'src>(mut module: Module<'src>) -> String {
     buf
 }
 
-fn fmt_module_fields<'src>(fields: Vec<ModuleField<'src>>) -> String {
+fn fmt_module_fields(fields: Vec<ModuleField>) -> String {
     let mut buf = String::new();
     for field in fields {
         buf.push_str(&fmt_module_field(field));
@@ -35,7 +35,7 @@ fn fmt_module_fields<'src>(fields: Vec<ModuleField<'src>>) -> String {
     buf
 }
 
-fn fmt_module_field<'src>(field: ModuleField<'src>) -> String {
+fn fmt_module_field(field: ModuleField) -> String {
     match field {
         ModuleField::Type(ty) => {
             fmt_type(ty)
@@ -57,7 +57,7 @@ fn fmt_module_field<'src>(field: ModuleField<'src>) -> String {
     }
 }
 
-fn fmt_type<'src>(ty: Type<'src>) -> String {
+fn fmt_type(ty: Type) -> String {
     let mut buf = String::new();
     buf.push_str("(type ");
     match ty.def {
@@ -66,33 +66,33 @@ fn fmt_type<'src>(ty: Type<'src>) -> String {
         },
         _ => unimplemented!(),
     };
-    buf.push_str(")");
+    buf.push(')');
     buf
 }
 
 
-fn fmt_func_ty<'src>(functy: &FunctionType<'src>) -> String {
+fn fmt_func_ty(functy: &FunctionType) -> String {
     let mut buf = String::new();
     buf.push_str("(func ");
 
     let params = fmt_params(&functy.params);
     buf.push_str(&params);
 
-    buf.push_str(" ");
+    buf.push(' ');
 
     let results = fmt_results(&functy.results);
     buf.push_str(&results);
 
-    buf.push_str(")");
+    buf.push(')');
 
     buf
 }
 
-fn fmt_func<'src>(func: Func<'src>) -> String {
+fn fmt_func(func: Func) -> String {
     let mut buf = String::new();
     buf.push_str("(func ");
     buf.push_str(&fmt_ty_use(&func.ty));
-    buf.push_str("\n");
+    buf.push('\n');
     buf.push_str(&indent(&fmt_func_kind(func.kind)));
     buf.push_str("\n)\n");
     buf
@@ -102,19 +102,19 @@ fn fmt_ty_use<'src>(ty_use: &TypeUse<'src, FunctionType>) -> String {
     let mut buf = String::new();
     if let Some(index) = ty_use.index {
         buf.push_str(&fmt_index(&index));
-        buf.push_str(" ");
+        buf.push(' ');
     };
 
     if let Some(functy) = &ty_use.inline {
         buf.push_str(&fmt_params(&functy.params));
-        buf.push_str(" ");
+        buf.push(' ');
         buf.push_str(&fmt_results(&functy.results));
     };
 
     buf
 }
 
-fn fmt_index<'src>(index: &Index<'src>) -> String {
+fn fmt_index(index: &Index) -> String {
     match index {
         Index::Num(n, ..) => n.to_string(),
         Index::Id(..) => todo!(),
@@ -123,28 +123,28 @@ fn fmt_index<'src>(index: &Index<'src>) -> String {
 
 type Param<'src> = (Option<Id<'src>>, Option<NameAnnotation<'src>>, ValType<'src>);
 
-fn fmt_params<'src>(params: &[Param<'src>]) -> String {
+fn fmt_params(params: &[Param]) -> String {
     let mut buf = String::new();
-    if params.len() > 0 {
+    if !params.is_empty() {
         buf.push_str("(param");
-        for param in params.into_iter() {
-            buf.push_str(" ");
+        for param in params.iter() {
+            buf.push(' ');
             buf.push_str(fmt_valty(&param.2));
         }
-        buf.push_str(")");
+        buf.push(')');
     }
     buf
 }
 
-fn fmt_results<'src>(results: &[ValType<'src>]) -> String {
+fn fmt_results(results: &[ValType]) -> String {
     let mut buf = String::new();
-    if results.len() > 0 {
+    if !results.is_empty() {
         buf.push_str("(result");
-        for result in results.into_iter() {
-            buf.push_str(" ");
+        for result in results.iter() {
+            buf.push(' ');
             buf.push_str(fmt_valty(result));
         }
-        buf.push_str(")");
+        buf.push(')');
     }
     buf
 }
@@ -159,7 +159,7 @@ fn fmt_valty<'src>(ty: &ValType<'src>) -> &'src str {
     }
 }
 
-fn fmt_func_kind<'src>(kind: FuncKind<'src>) -> String {
+fn fmt_func_kind(kind: FuncKind) -> String {
     let mut buf = String::new();
     match kind {
         FuncKind::Import(..) => todo!(),
@@ -179,7 +179,7 @@ fn fmt_locals(locals: Vec<Local>) -> String {
     if !locals.is_empty() {
         buf.push_str("(local");
         for local in locals {
-            buf.push_str(" ");
+            buf.push(' ');
             buf.push_str(&fmt_valty(&local.ty));
         }
         buf.push_str(")\n");
@@ -187,16 +187,16 @@ fn fmt_locals(locals: Vec<Local>) -> String {
     buf
 }
 
-fn fmt_expression<'src>(expression: Expression<'src>) -> String {
+fn fmt_expression(expression: Expression) -> String {
     let mut buf = String::new();
     let mut indentation = 0;
-    for instruction in expression.instrs.into_iter() {
+    for instruction in expression.instrs.iter() {
         if is_block_end_instr(instruction) {
             indentation -= 1;
         }
         buf.push_str(&"\t".repeat(indentation));
         buf.push_str(&fmt_instr(instruction));
-        buf.push_str("\n");
+        buf.push('\n');
         if is_block_start_instr(instruction) {
             indentation += 1;
         }
@@ -204,24 +204,21 @@ fn fmt_expression<'src>(expression: Expression<'src>) -> String {
     buf
 }
 
-fn is_block_end_instr<'src>(instruction: &Instruction<'src>) -> bool {
-    match instruction {
-        Instruction::Else(..) | Instruction::End(..) => true,
-        _ => false,
-    }
+fn is_block_end_instr(instruction: &Instruction) -> bool {
+    matches!(instruction, Instruction::Else(..) | Instruction::End(..))
 }
 
-fn is_block_start_instr<'src>(instruction: &Instruction<'src>) -> bool {
-    match instruction {
+fn is_block_start_instr(instruction: &Instruction) -> bool {
+    matches!(
+        instruction,
         Instruction::Block(..) |
         Instruction::If(..) |
         Instruction::Loop(..) |
-        Instruction::Else(..) => true,
-        _ => false,
-    }
+        Instruction::Else(..),
+    )
 }
 
-fn fmt_instr<'src>(instruction: &Instruction<'src>) -> String {
+fn fmt_instr(instruction: &Instruction) -> String {
     match instruction {
         // Numeric instructions
         Instruction::I32Const(n) => {
@@ -239,435 +236,435 @@ fn fmt_instr<'src>(instruction: &Instruction<'src>) -> String {
 
 
         Instruction::I32Clz => {
-            format!("i32.clz")
+            "i32.clz".to_owned()
         },
         Instruction::I32Ctz => {
-            format!("i32.ctz")
+            "i32.ctz".to_owned()
         },
         Instruction::I32Popcnt => {
-            format!("i32.popcnt")
+            "i32.popcnt".to_owned()
         },
         Instruction::I32Add => {
-            format!("i32.add")
+            "i32.add".to_owned()
         },
         Instruction::I32Sub => {
-            format!("i32.sub")
+            "i32.sub".to_owned()
         },
         Instruction::I32Mul => {
-            format!("i32.mul")
+            "i32.mul".to_owned()
         },
         Instruction::I32DivS => {
-            format!("i32.div_s")
+            "i32.div_s".to_owned()
         },
         Instruction::I32DivU => {
-            format!("i32.div_u")
+            "i32.div_u".to_owned()
         },
         Instruction::I32RemS => {
-            format!("i32.rem_s")
+            "i32.rem_s".to_owned()
         },
         Instruction::I32RemU => {
-            format!("i32.rem_u")
+            "i32.rem_u".to_owned()
         },
         Instruction::I32And => {
-            format!("i32.and")
+            "i32.and".to_owned()
         },
         Instruction::I32Or => {
-            format!("i32.or")
+            "i32.or".to_owned()
         },
         Instruction::I32Xor => {
-            format!("i32.xor")
+            "i32.xor".to_owned()
         },
         Instruction::I32Shl => {
-            format!("i32.shl")
+            "i32.shl".to_owned()
         },
         Instruction::I32ShrS => {
-            format!("i32.shr_s")
+            "i32.shr_s".to_owned()
         },
         Instruction::I32ShrU => {
-            format!("i32.shr_u")
+            "i32.shr_u".to_owned()
         },
         Instruction::I32Rotl => {
-            format!("i32.rotl")
+            "i32.rotl".to_owned()
         },
         Instruction::I32Rotr => {
-            format!("i32.rotr")
+            "i32.rotr".to_owned()
         },
 
 
         Instruction::I64Clz => {
-            format!("i64.clz")
+            "i64.clz".to_owned()
         },
         Instruction::I64Ctz => {
-            format!("i64.ctz")
+            "i64.ctz".to_owned()
         },
         Instruction::I64Popcnt => {
-            format!("i64.popcnt")
+            "i64.popcnt".to_owned()
         },
         Instruction::I64Add => {
-            format!("i64.add")
+            "i64.add".to_owned()
         },
         Instruction::I64Sub => {
-            format!("i64.sub")
+            "i64.sub".to_owned()
         },
         Instruction::I64Mul => {
-            format!("i64.mul")
+            "i64.mul".to_owned()
         },
         Instruction::I64DivS => {
-            format!("i64.div_s")
+            "i64.div_s".to_owned()
         },
         Instruction::I64DivU => {
-            format!("i64.div_u")
+            "i64.div_u".to_owned()
         },
         Instruction::I64RemS => {
-            format!("i64.rem_s")
+            "i64.rem_s".to_owned()
         },
         Instruction::I64RemU => {
-            format!("i64.rem_u")
+            "i64.rem_u".to_owned()
         },
         Instruction::I64And => {
-            format!("i64.and")
+            "i64.and".to_owned()
         },
         Instruction::I64Or => {
-            format!("i64.or")
+            "i64.or".to_owned()
         },
         Instruction::I64Xor => {
-            format!("i64.xor")
+            "i64.xor".to_owned()
         },
         Instruction::I64Shl => {
-            format!("i64.shl")
+            "i64.shl".to_owned()
         },
         Instruction::I64ShrS => {
-            format!("i64.shr_s")
+            "i64.shr_s".to_owned()
         },
         Instruction::I64ShrU => {
-            format!("i64.shr_u")
+            "i64.shr_u".to_owned()
         },
         Instruction::I64Rotl => {
-            format!("i64.rotl")
+            "i64.rotl".to_owned()
         },
         Instruction::I64Rotr => {
-            format!("i64.rotr")
+            "i64.rotr".to_owned()
         },
 
 
         Instruction::F32Abs => {
-            format!("f32.abs")
+            "f32.abs".to_owned()
         },
         Instruction::F32Neg => {
-            format!("f32.neg")
+            "f32.neg".to_owned()
         },
         Instruction::F32Sqrt => {
-            format!("f32.sqrt")
+            "f32.sqrt".to_owned()
         },
         Instruction::F32Ceil => {
-            format!("f32.ceil")
+            "f32.ceil".to_owned()
         },
         Instruction::F32Floor => {
-            format!("f32.floor")
+            "f32.floor".to_owned()
         },
         Instruction::F32Trunc => {
-            format!("f32.trunc")
+            "f32.trunc".to_owned()
         },
         Instruction::F32Nearest => {
-            format!("f32.nearest")
+            "f32.nearest".to_owned()
         },
         Instruction::F32Add => {
-            format!("f32.add")
+            "f32.add".to_owned()
         },
         Instruction::F32Sub => {
-            format!("f32.sub")
+            "f32.sub".to_owned()
         },
         Instruction::F32Div => {
-            format!("f32.div")
+            "f32.div".to_owned()
         },
         Instruction::F32Min => {
-            format!("f32.min")
+            "f32.min".to_owned()
         },
         Instruction::F32Max => {
-            format!("f32.max")
+            "f32.max".to_owned()
         },
         Instruction::F32Copysign => {
-            format!("f32.copysign")
+            "f32.copysign".to_owned()
         },
 
 
         Instruction::F64Abs => {
-            format!("f32.abs")
+            "f32.abs".to_owned()
         },
         Instruction::F64Neg => {
-            format!("f32.neg")
+            "f32.neg".to_owned()
         },
         Instruction::F64Sqrt => {
-            format!("f32.sqrt")
+            "f32.sqrt".to_owned()
         },
         Instruction::F64Ceil => {
-            format!("f32.ceil")
+            "f32.ceil".to_owned()
         },
         Instruction::F64Floor => {
-            format!("f32.floor")
+            "f32.floor".to_owned()
         },
         Instruction::F64Trunc => {
-            format!("f32.trunc")
+            "f32.trunc".to_owned()
         },
         Instruction::F64Nearest => {
-            format!("f32.nearest")
+            "f32.nearest".to_owned()
         },
         Instruction::F64Add => {
-            format!("f32.add")
+            "f32.add".to_owned()
         },
         Instruction::F64Sub => {
-            format!("f32.sub")
+            "f32.sub".to_owned()
         },
         Instruction::F64Div => {
-            format!("f32.div")
+            "f32.div".to_owned()
         },
         Instruction::F64Min => {
-            format!("f32.min")
+            "f32.min".to_owned()
         },
         Instruction::F64Max => {
-            format!("f32.max")
+            "f32.max".to_owned()
         },
         Instruction::F64Copysign => {
-            format!("f32.copysign")
+            "f32.copysign".to_owned()
         },
 
 
         Instruction::I32Eqz => {
-            format!("i32.eqz")
+            "i32.eqz".to_owned()
         },
         Instruction::I32Eq => {
-            format!("i32.eq")
+            "i32.eq".to_owned()
         },
         Instruction::I32Ne => {
-            format!("i32.ne")
+            "i32.ne".to_owned()
         },
         Instruction::I32LtS => {
-            format!("i32.lt_s")
+            "i32.lt_s".to_owned()
         },
         Instruction::I32LtU => {
-            format!("i32.lt_u")
+            "i32.lt_u".to_owned()
         },
         Instruction::I32GtS => {
-            format!("i32.gt_s")
+            "i32.gt_s".to_owned()
         },
         Instruction::I32GtU => {
-            format!("i32.gt_u")
+            "i32.gt_u".to_owned()
         },
         Instruction::I32LeS => {
-            format!("i32.le_s")
+            "i32.le_s".to_owned()
         },
         Instruction::I32LeU => {
-            format!("i32.le_u")
+            "i32.le_u".to_owned()
         },
         Instruction::I32GeS => {
-            format!("i32.ge_s")
+            "i32.ge_s".to_owned()
         },
         Instruction::I32GeU => {
-            format!("i32.ge_u")
+            "i32.ge_u".to_owned()
         },
 
 
         Instruction::I64Eqz => {
-            format!("i64.eqz")
+            "i64.eqz".to_owned()
         },
         Instruction::I64Eq => {
-            format!("i64.eq")
+            "i64.eq".to_owned()
         },
         Instruction::I64Ne => {
-            format!("i64.ne")
+            "i64.ne".to_owned()
         },
         Instruction::I64LtS => {
-            format!("i64.lt_s")
+            "i64.lt_s".to_owned()
         },
         Instruction::I64LtU => {
-            format!("i64.lt_u")
+            "i64.lt_u".to_owned()
         },
         Instruction::I64GtS => {
-            format!("i64.gt_s")
+            "i64.gt_s".to_owned()
         },
         Instruction::I64GtU => {
-            format!("i64.gt_u")
+            "i64.gt_u".to_owned()
         },
         Instruction::I64LeS => {
-            format!("i64.le_s")
+            "i64.le_s".to_owned()
         },
         Instruction::I64LeU => {
-            format!("i64.le_u")
+            "i64.le_u".to_owned()
         },
         Instruction::I64GeS => {
-            format!("i64.ge_s")
+            "i64.ge_s".to_owned()
         },
         Instruction::I64GeU => {
-            format!("i64.ge_u")
+            "i64.ge_u".to_owned()
         },
 
 
         Instruction::F32Eq => {
-            format!("f32.eq")
+            "f32.eq".to_owned()
         },
         Instruction::F32Ne => {
-            format!("f32.ne")
+            "f32.ne".to_owned()
         },
         Instruction::F32Lt => {
-            format!("f32.lt")
+            "f32.lt".to_owned()
         },
         Instruction::F32Gt => {
-            format!("f32.gt")
+            "f32.gt".to_owned()
         },
         Instruction::F32Le => {
-            format!("f32.le")
+            "f32.le".to_owned()
         },
         Instruction::F32Ge => {
-            format!("f32.ge")
+            "f32.ge".to_owned()
         },
 
 
         Instruction::F64Eq => {
-            format!("f32.eq")
+            "f32.eq".to_owned()
         },
         Instruction::F64Ne => {
-            format!("f32.ne")
+            "f32.ne".to_owned()
         },
         Instruction::F64Lt => {
-            format!("f32.lt")
+            "f32.lt".to_owned()
         },
         Instruction::F64Gt => {
-            format!("f32.gt")
+            "f32.gt".to_owned()
         },
         Instruction::F64Le => {
-            format!("f32.le")
+            "f32.le".to_owned()
         },
         Instruction::F64Ge => {
-            format!("f32.ge")
+            "f32.ge".to_owned()
         },
 
 
         Instruction::I32WrapI64 => {
-            format!("i32.wrap_i64")
+            "i32.wrap_i64".to_owned()
         },
         Instruction::I32TruncF32S => {
-            format!("i32.trunc_f32_s")
+            "i32.trunc_f32_s".to_owned()
         },
         Instruction::I32TruncF32U => {
-            format!("i32.trunc_f32_u")
+            "i32.trunc_f32_u".to_owned()
         },
         Instruction::I32TruncF64S => {
-            format!("i32.trunc_f64_s")
+            "i32.trunc_f64_s".to_owned()
         },
         Instruction::I32TruncF64U => {
-            format!("i32.trunc_f32_u")
+            "i32.trunc_f32_u".to_owned()
         },
         Instruction::I32TruncSatF32S => {
-            format!("i32.trunc_sat_f32_s")
+            "i32.trunc_sat_f32_s".to_owned()
         },
         Instruction::I32TruncSatF32U => {
-            format!("i32.trunc_sat_f32_u")
+            "i32.trunc_sat_f32_u".to_owned()
         },
         Instruction::I32TruncSatF64S => {
-            format!("i32.trunc_sat_f64_s")
+            "i32.trunc_sat_f64_s".to_owned()
         },
         Instruction::I32TruncSatF64U => {
-            format!("i32.trunc_sat_f64_u")
+            "i32.trunc_sat_f64_u".to_owned()
         },
         Instruction::I64ExtendI32S => {
-            format!("i64.extend_i32_s")
+            "i64.extend_i32_s".to_owned()
         },
         Instruction::I64ExtendI32U => {
-            format!("i64.extend_i32_u")
+            "i64.extend_i32_u".to_owned()
         },
         Instruction::I64TruncF32S => {
-            format!("i64.trunc_f32_s")
+            "i64.trunc_f32_s".to_owned()
         },
         Instruction::I64TruncF32U => {
-            format!("i64.trunc_f_32_u")
+            "i64.trunc_f_32_u".to_owned()
         },
         Instruction::I64TruncF64S => {
-            format!("i64.trunc_f64_s")
+            "i64.trunc_f64_s".to_owned()
         },
         Instruction::I64TruncF64U => {
-            format!("i64.trunc_f64_u")
+            "i64.trunc_f64_u".to_owned()
         },
         Instruction::I64TruncSatF32S => {
-            format!("i64.trunc_sat_f32_s")
+            "i64.trunc_sat_f32_s".to_owned()
         },
         Instruction::I64TruncSatF32U => {
-            format!("i64.trunc_sat_f32_u")
+            "i64.trunc_sat_f32_u".to_owned()
         },
         Instruction::I64TruncSatF64S => {
-            format!("i64.trunc_sat_f64_s")
+            "i64.trunc_sat_f64_s".to_owned()
         },
         Instruction::I64TruncSatF64U => {
-            format!("i64.trunc_sat_f64_u")
+            "i64.trunc_sat_f64_u".to_owned()
         },
         Instruction::F32ConvertI32S => {
-            format!("f32.convert_i32_s")
+            "f32.convert_i32_s".to_owned()
         },
         Instruction::F32ConvertI32U => {
-            format!("f32.convert_i32_u")
+            "f32.convert_i32_u".to_owned()
         },
         Instruction::F32ConvertI64S => {
-            format!("f32.convert_i64_s")
+            "f32.convert_i64_s".to_owned()
         },
         Instruction::F32ConvertI64U => {
-            format!("f32.convert_i64_u")
+            "f32.convert_i64_u".to_owned()
         },
         Instruction::F32DemoteF64 => {
-            format!("f32.demote_f64")
+            "f32.demote_f64".to_owned()
         },
         Instruction::F64ConvertI32S => {
-            format!("f64.convert_i32_s")
+            "f64.convert_i32_s".to_owned()
         },
         Instruction::F64ConvertI32U => {
-            format!("f64.convert_i32_u")
+            "f64.convert_i32_u".to_owned()
         },
         Instruction::F64ConvertI64S => {
-            format!("f64.convert_i64_s")
+            "f64.convert_i64_s".to_owned()
         },
         Instruction::F64ConvertI64U => {
-            format!("f64.convert_i64_u")
+            "f64.convert_i64_u".to_owned()
         },
         Instruction::F64PromoteF32 => {
-            format!("f64.promote_f32")
+            "f64.promote_f32".to_owned()
         },
         Instruction::I32ReinterpretF32 => {
-            format!("i32.reinterpret_f32")
+            "i32.reinterpret_f32".to_owned()
         },
         Instruction::I64ReinterpretF64 => {
-            format!("i64.reinterpret_f64")
+            "i64.reinterpret_f64".to_owned()
         },
         Instruction::F32ReinterpretI32 => {
-            format!("f32.reinterpret_i32")
+            "f32.reinterpret_i32".to_owned()
         },
         Instruction::F64ReinterpretI64 => {
-            format!("f64.reinterpret_i64")
+            "f64.reinterpret_i64".to_owned()
         },
 
 
         Instruction::I32Extend8S => {
-            format!("i32.extend_8_s")
+            "i32.extend_8_s".to_owned()
         },
         Instruction::I32Extend16S => {
-            format!("i32.extend_16_s")
+            "i32.extend_16_s".to_owned()
         },
 
 
         Instruction::I64Extend8S => {
-            format!("i64.extend_8_s")
+            "i64.extend_8_s".to_owned()
         },
         Instruction::I64Extend16S => {
-            format!("i64.extend_16_s")
+            "i64.extend_16_s".to_owned()
         },
         Instruction::I64Extend32S => {
-            format!("i64.extend_32_s")
+            "i64.extend_32_s".to_owned()
         },
 
 
         // Parametric instructions
         Instruction::Drop => {
-            format!("drop")
+            "drop".to_owned()
         },
         Instruction::Select(_types) => {
-            format!("select")
+            "select".to_owned()
         },
 
         // Variable instructions
@@ -809,7 +806,7 @@ fn fmt_instr<'src>(instruction: &Instruction<'src>) -> String {
                     unimplemented!()
                 }
             };
-            format!("memory.size")
+            "memory.size".to_owned()
         },
         Instruction::MemoryGrow(memory_arg) => {
             if let Index::Num(n, ..) = memory_arg.mem {
@@ -817,15 +814,15 @@ fn fmt_instr<'src>(instruction: &Instruction<'src>) -> String {
                     unimplemented!()
                 }
             };
-            format!("memory.grow")
+            "memory.grow".to_owned()
         },
 
         // Control instructions
         Instruction::Unreachable => {
-            format!("unreachable")
+            "unreachable".to_owned()
         },
         Instruction::Nop => {
-            format!("nop")
+            "nop".to_owned()
         },
         Instruction::Br(index) => {
             format!("br {}", fmt_index(index))
@@ -837,7 +834,7 @@ fn fmt_instr<'src>(instruction: &Instruction<'src>) -> String {
             format!("br_table {}", fmt_branch_indices(indices))
         },
         Instruction::Return => {
-            format!("return")
+            "return".to_owned()
         },
         Instruction::Call(index) => {
             format!("call {}", fmt_index(index))
@@ -862,21 +859,21 @@ fn fmt_instr<'src>(instruction: &Instruction<'src>) -> String {
         },
         // TODO: id
         Instruction::Else(..) => {
-            format!("else")
+            "else".to_owned()
         },
         Instruction::End(..) => {
-            format!("end")
+            "end".to_owned()
         },
-        _ => todo!("other instruction"),
+        _ => unimplemented!(),
     }
 }
 
 // TODO: id
-fn fmt_blocktype<'src>(blocktype: &BlockType<'src>) -> String {
+fn fmt_blocktype(blocktype: &BlockType) -> String {
     fmt_ty_use(&blocktype.ty)
 }
 
-fn fmt_branch_indices<'src>(indices: &BrTableIndices<'src>) -> String {
+fn fmt_branch_indices(indices: &BrTableIndices) -> String {
     let mut buf = String::new();
     for label in &indices.labels {
         buf.push_str(&fmt_index(label));
@@ -885,18 +882,18 @@ fn fmt_branch_indices<'src>(indices: &BrTableIndices<'src>) -> String {
     buf
 }
 
-fn fmt_export<'src>(export: Export<'src>) -> String {
+fn fmt_export(export: Export) -> String {
     let mut buf = String::new();
 
     buf.push_str("(export ");
     buf.push_str(&fmt_string(export.name));
-    buf.push_str(" ");
+    buf.push(' ');
     buf.push_str(&fmt_export_kind(export.kind));
     buf.push_str(")\n");
     buf
 }
 
-fn fmt_export_kind<'src>(kind: ExportKind<'src>) -> String {
+fn fmt_export_kind(kind: ExportKind) -> String {
     match kind {
         ExportKind::Func(index) => {
             format!("(func {})", fmt_index(&index))
@@ -911,11 +908,11 @@ fn fmt_export_kind<'src>(kind: ExportKind<'src>) -> String {
     }
 }
 
-fn fmt_string<'src>(string: &str) -> String {
+fn fmt_string(string: &str) -> String {
     format!("\"{}\"", string)
 }
 
-fn fmt_memarg<'src>(memarg: &MemArg<'src>) -> String {
+fn fmt_memarg(memarg: &MemArg) -> String {
     format!("offset={offset} align={align}",
         offset = memarg.offset,
         align = memarg.align
