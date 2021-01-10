@@ -10,3 +10,10 @@ edition = "2018"
 structopt = "0.3"
 wast = "30.0"
 itertools = "0.10"
+
+[dev-dependencies]
+criterion = "0.3"
+
+[[bench]]
+name = "fmt"
+harness = false
