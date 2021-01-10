@@ -1,7 +1,7 @@
 use std::process::{Command, Stdio};
 use std::io::Write;
 
-const BIN: &'static str = env!("CARGO_BIN_EXE_WASMFMT");
+const BIN: &'static str = env!("CARGO_BIN_EXE_wasmfmt");
 
 fn run(input: &str) -> Result<String, String> {
 	let mut process = Command::new(BIN)
