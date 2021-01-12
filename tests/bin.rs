@@ -55,3 +55,11 @@ fn fac_sugar() {
         wasmfmt(&["tests/data/input/fac_sugar.wat"]).expect("failed to format fac_sugar.wat");
     assert_eq!(actual, expected);
 }
+
+#[test]
+fn memory_grow() {
+    let expected = include_str!("data/output/memory_grow.wat");
+    let actual =
+        wasmfmt(&["tests/data/input/memory_grow.wat"]).expect("failed to format fac_sugar.wat");
+    assert_eq!(actual, expected);
+}

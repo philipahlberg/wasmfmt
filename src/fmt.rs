@@ -1,123 +1,279 @@
-use crate::utils::indent;
-use wast::{
-    parser::{self, ParseBuffer},
-    BlockType, BrTableIndices, Export, ExportKind, Expression, Func, FuncKind, FunctionType, Id,
-    Index, Instruction, Local, MemArg, Module, ModuleField, ModuleKind, NameAnnotation, Type,
-    TypeDef, TypeUse, ValType, Wat,
-};
+use wast::{BlockType, BrTableIndices, Export, ExportKind, Expression, Float32, Float64, Func, FuncKind, FunctionType, Id, Index, Instruction, Local, MemArg, Module, ModuleField, ModuleKind, NameAnnotation, Type, TypeDef, TypeUse, ValType, Wat, parser::{self, ParseBuffer}};
+
+pub struct Formatter {
+    buffer: String,
+    indentation: usize,
+}
+
+impl Formatter {
+    fn new() -> Self {
+        Self {
+            buffer: String::new(),
+            indentation: 0,
+        }
+    }
+
+    fn indent(&mut self) {
+        self.indentation += 1;
+    }
+
+    fn deindent(&mut self) {
+        self.indentation -= 1;
+    }
+
+    fn start_line(&mut self) {
+        self.buffer.push_str(&"\t".repeat(self.indentation));
+    }
+
+    fn end_line(&mut self) {
+        self.buffer.push('\n');
+    }
+
+    fn write(&mut self, string: &str) {
+        self.buffer.push_str(string);
+    }
+
+    fn write_line(&mut self, string: &str) {
+        self.start_line();
+        self.write(string);
+        self.end_line();
+    }
+
+    fn fmt<T: Fmt>(&mut self, v: T) {
+        v.fmt(self);
+    }
+}
+
+impl Into<String> for Formatter {
+    fn into(self) -> String {
+        self.buffer
+    }
+}
+
+pub trait Fmt {
+    fn fmt(&self, formatter: &mut Formatter);
+}
 
 pub fn fmt(source: &str) -> String {
     let buffer = ParseBuffer::new(source).unwrap();
-    let wat = parser::parse::<Wat>(&buffer).unwrap();
-    fmt_wat(wat)
-}
-
-fn fmt_wat(wat: Wat) -> String {
-    fmt_module(wat.module)
-}
-
-fn fmt_module(mut module: Module) -> String {
+    let mut wat = parser::parse::<Wat>(&buffer).unwrap();
     // TODO: Handle error
-    module.resolve().unwrap();
-    let mut buf = String::new();
-    buf.push_str("(module\n");
-    match module.kind {
-        ModuleKind::Text(fields) => {
-            let fields = indent(&fmt_module_fields(fields));
-            buf.push_str(&fields);
+    wat.module.resolve().unwrap();
+    let mut formatter = Formatter::new();
+    wat.fmt(&mut formatter);
+    formatter.into()
+}
+
+impl<'src> Fmt for Wat<'src> {
+    fn fmt(&self, formatter: &mut Formatter) {
+        self.module.fmt(formatter)
+    }
+}
+
+impl<'src> Fmt for Module<'src> {
+    fn fmt(&self, formatter: &mut Formatter) {
+        formatter.write_line("(module");
+        formatter.indent();
+        formatter.fmt(&self.kind);
+        formatter.deindent();
+        formatter.write_line(")");
+    }
+}
+
+impl<'src> Fmt for &ModuleKind<'src> {
+    fn fmt(&self, formatter: &mut Formatter) {
+        match self {
+            ModuleKind::Text(fields) => {
+                formatter.fmt(fields);
+            }
+            ModuleKind::Binary(..) => unimplemented!(),
         }
-        ModuleKind::Binary(..) => todo!(),
-    }
-    buf.push_str("\n)\n");
-    buf
-}
-
-fn fmt_module_fields(fields: Vec<ModuleField>) -> String {
-    let mut buf = String::new();
-    for field in fields {
-        buf.push_str(&fmt_module_field(field));
-    }
-    buf
-}
-
-fn fmt_module_field(field: ModuleField) -> String {
-    match field {
-        ModuleField::Type(ty) => fmt_type(ty),
-        ModuleField::Func(func) => fmt_func(func),
-        ModuleField::Global(..) => todo!(),
-        ModuleField::Memory(..) => todo!(),
-        ModuleField::Table(..) => todo!(),
-        ModuleField::Elem(..) => todo!(),
-        ModuleField::Data(..) => todo!(),
-        ModuleField::Export(export) => fmt_export(export),
-        ModuleField::Import(..) => todo!(),
-        ModuleField::Start(..) => todo!(),
-        _ => unimplemented!(),
     }
 }
 
-fn fmt_type(ty: Type) -> String {
-    let mut buf = String::new();
-    buf.push_str("(type ");
-    match ty.def {
-        TypeDef::Func(functy) => {
-            buf.push_str(&fmt_func_ty(&functy));
+impl<'src> Fmt for &Vec<ModuleField<'src>> {
+    fn fmt(&self, formatter: &mut Formatter) {
+        for field in self.iter() {
+            formatter.fmt(field);
         }
-        _ => unimplemented!(),
-    };
-    buf.push(')');
-    buf
-}
-
-fn fmt_func_ty(functy: &FunctionType) -> String {
-    let mut buf = String::new();
-    buf.push_str("(func ");
-
-    let params = fmt_params(&functy.params);
-    buf.push_str(&params);
-
-    buf.push(' ');
-
-    let results = fmt_results(&functy.results);
-    buf.push_str(&results);
-
-    buf.push(')');
-
-    buf
-}
-
-fn fmt_func(func: Func) -> String {
-    let mut buf = String::new();
-    buf.push_str("(func ");
-    buf.push_str(&fmt_ty_use(&func.ty));
-    buf.push('\n');
-    buf.push_str(&indent(&fmt_func_kind(func.kind)));
-    buf.push_str("\n)\n");
-    buf
-}
-
-fn fmt_ty_use<'src>(ty_use: &TypeUse<'src, FunctionType>) -> String {
-    let mut buf = String::new();
-    if let Some(index) = ty_use.index {
-        buf.push_str(&fmt_index(&index));
-        buf.push(' ');
-    };
-
-    if let Some(functy) = &ty_use.inline {
-        buf.push_str(&fmt_params(&functy.params));
-        buf.push(' ');
-        buf.push_str(&fmt_results(&functy.results));
-    };
-
-    buf
-}
-
-fn fmt_index(index: &Index) -> String {
-    match index {
-        Index::Num(n, ..) => n.to_string(),
-        Index::Id(..) => todo!(),
     }
 }
+
+impl<'src> Fmt for &ModuleField<'src> {
+    fn fmt(&self, formatter: &mut Formatter) {
+        match self {
+            ModuleField::Type(ty) => formatter.fmt(ty),
+            ModuleField::Func(func) => formatter.fmt(func),
+            ModuleField::Global(..) => todo!(),
+            ModuleField::Memory(..) => todo!(),
+            ModuleField::Table(..) => todo!(),
+            ModuleField::Elem(..) => todo!(),
+            ModuleField::Data(..) => todo!(),
+            ModuleField::Export(export) => formatter.fmt(export),
+            ModuleField::Import(..) => todo!(),
+            ModuleField::Start(..) => todo!(),
+            ModuleField::Custom(..) => todo!(),
+            ModuleField::ExportAll(..) => unimplemented!(),
+            ModuleField::Event(..) => unimplemented!(),
+            ModuleField::Instance(..) => unimplemented!(),
+            ModuleField::NestedModule(..) => unimplemented!(),
+            ModuleField::Alias(..) => unimplemented!(),
+        };
+    }
+}
+
+impl<'src> Fmt for &Type<'src> {
+    fn fmt(&self, formatter: &mut Formatter) {
+        formatter.start_line();
+        formatter.write("(type ");
+        formatter.fmt(&self.def);
+        formatter.write(")");
+        formatter.end_line();
+    }
+}
+
+impl<'src> Fmt for &Func<'src> {
+    fn fmt(&self, formatter: &mut Formatter) {
+        formatter.start_line();
+        formatter.write("(func ");
+        formatter.fmt(&self.ty);
+        formatter.end_line();
+        formatter.indent();
+        formatter.fmt(&self.kind);
+        formatter.deindent();
+        formatter.start_line();
+        formatter.write(")");
+        formatter.end_line();
+    }
+}
+
+impl<'src> Fmt for &Export<'src> {
+    fn fmt(&self, formatter: &mut Formatter) {
+        formatter.start_line();
+        formatter.write("(export ");
+        formatter.fmt(self.name);
+        formatter.write(" ");
+        formatter.fmt(&self.kind);
+        formatter.write(")");
+        formatter.end_line();
+    }
+}
+
+impl<'src> Fmt for &TypeDef<'src> {
+    fn fmt(&self, formatter: &mut Formatter) {
+        match self {
+            TypeDef::Func(functy) => functy.fmt(formatter),
+            TypeDef::Struct(..) => unimplemented!(),
+            TypeDef::Array(..) => unimplemented!(),
+            TypeDef::Module(..) => unimplemented!(),
+            TypeDef::Instance(..) => unimplemented!(),
+        };
+    }
+}
+
+impl<'src> Fmt for &FunctionType<'src> {
+    fn fmt(&self, formatter: &mut Formatter) {
+        formatter.write("(func ");
+        formatter.fmt(&*self.params);
+        formatter.write(" ");
+        formatter.fmt(&*self.results);
+        formatter.write(")");
+    }
+}
+
+impl<'src> Fmt for &ExportKind<'src> {
+    fn fmt(&self, formatter: &mut Formatter) {
+        match self {
+            ExportKind::Func(index) => {
+                formatter.write("(func ");
+                formatter.fmt(index);
+                formatter.write(")");
+            }
+            ExportKind::Type(..) => todo!(),
+            ExportKind::Global(..) => todo!(),
+            ExportKind::Instance(..) => todo!(),
+            ExportKind::Memory(..) => todo!(),
+            ExportKind::Table(..) => todo!(),
+            ExportKind::Module(..) => todo!(),
+            ExportKind::Event(..) => todo!(),
+        };
+    }
+}
+
+impl<'src> Fmt for &TypeUse<'src, FunctionType<'src>> {
+    fn fmt(&self, formatter: &mut Formatter) {
+        if let Some(index) = self.index {
+            formatter.fmt(&index);
+            formatter.write(" ");
+        };
+    
+        if let Some(functy) = &self.inline {
+            formatter.fmt(&*functy.params);
+            if !functy.params.is_empty() {
+                formatter.write(" ");
+            }
+            formatter.fmt(&*functy.results);
+        };
+    }
+}
+
+impl<'src> Fmt for &Index<'src> {
+    fn fmt(&self, formatter: &mut Formatter) {
+        match self {
+            Index::Num(n, ..) => formatter.fmt(n),
+            Index::Id(id) => formatter.fmt(id),
+        };
+    }
+}
+
+impl<'src> Fmt for &u32 {
+    fn fmt(&self, formatter: &mut Formatter) {
+        formatter.write(&self.to_string());
+    }
+}
+
+impl<'src> Fmt for &i32 {
+    fn fmt(&self, formatter: &mut Formatter) {
+        formatter.write(&self.to_string());
+    }
+}
+
+impl<'src> Fmt for &i64 {
+    fn fmt(&self, formatter: &mut Formatter) {
+        formatter.write(&self.to_string());
+    }
+}
+
+impl<'src> Fmt for &f32 {
+    fn fmt(&self, formatter: &mut Formatter) {
+        formatter.write(&self.to_string());
+    }
+}
+
+impl<'src> Fmt for &f64 {
+    fn fmt(&self, formatter: &mut Formatter) {
+        formatter.write(&self.to_string());
+    }
+}
+
+impl Fmt for &Float32 {
+    fn fmt(&self, formatter: &mut Formatter) {
+        formatter.fmt(&f32::from_bits(self.bits));
+    }
+}
+
+impl<'src> Fmt for &Float64 {
+    fn fmt(&self, formatter: &mut Formatter) {
+        formatter.fmt(&f64::from_bits(self.bits));
+    }
+}
+
+impl<'src> Fmt for &Id<'src> {
+    fn fmt(&self, formatter: &mut Formatter) {
+        formatter.write("$");
+        formatter.write(self.name());
+    }
+} 
 
 type Param<'src> = (
     Option<Id<'src>>,
@@ -125,82 +281,88 @@ type Param<'src> = (
     ValType<'src>,
 );
 
-fn fmt_params(params: &[Param]) -> String {
-    let mut buf = String::new();
-    if !params.is_empty() {
-        buf.push_str("(param");
-        for param in params.iter() {
-            buf.push(' ');
-            buf.push_str(fmt_valty(&param.2));
+// TODO: ID, Name
+impl<'src> Fmt for &[Param<'src>] {
+    fn fmt(&self, formatter: &mut Formatter) {
+        if !self.is_empty() {
+            formatter.write("(param");
+            for param in self.iter() {
+                formatter.write(" ");
+                formatter.fmt(&param.2);
+            }
+            formatter.write(")");
         }
-        buf.push(')');
-    }
-    buf
-}
-
-fn fmt_results(results: &[ValType]) -> String {
-    let mut buf = String::new();
-    if !results.is_empty() {
-        buf.push_str("(result");
-        for result in results.iter() {
-            buf.push(' ');
-            buf.push_str(fmt_valty(result));
-        }
-        buf.push(')');
-    }
-    buf
-}
-
-fn fmt_valty<'src>(ty: &ValType<'src>) -> &'src str {
-    match ty {
-        ValType::I32 => "i32",
-        ValType::I64 => "i64",
-        ValType::F32 => "f32",
-        ValType::F64 => "f64",
-        _ => todo!(),
     }
 }
 
-fn fmt_func_kind(kind: FuncKind) -> String {
-    let mut buf = String::new();
-    match kind {
-        FuncKind::Import(..) => todo!(),
-        FuncKind::Inline { locals, expression } => {
-            buf.push_str(&fmt_locals(locals));
-            buf.push_str(&fmt_expression(expression));
-        }
-    };
-    buf
-}
-
-fn fmt_locals(locals: Vec<Local>) -> String {
-    let mut buf = String::new();
-    if !locals.is_empty() {
-        buf.push_str("(local");
-        for local in locals {
-            buf.push(' ');
-            buf.push_str(&fmt_valty(&local.ty));
-        }
-        buf.push_str(")\n");
-    }
-    buf
-}
-
-fn fmt_expression(expression: Expression) -> String {
-    let mut buf = String::new();
-    let mut indentation = 0;
-    for instruction in expression.instrs.iter() {
-        if is_block_end_instr(instruction) {
-            indentation -= 1;
-        }
-        buf.push_str(&"\t".repeat(indentation));
-        buf.push_str(&fmt_instr(instruction));
-        buf.push('\n');
-        if is_block_start_instr(instruction) {
-            indentation += 1;
+impl<'src> Fmt for &[ValType<'src>] {
+    fn fmt(&self, formatter: &mut Formatter) {
+        if !self.is_empty() {
+            formatter.write("(result");
+            for result in self.iter() {
+                formatter.write(" ");
+                formatter.fmt(result);
+            }
+            formatter.write(")");
         }
     }
-    buf
+}
+
+impl<'src> Fmt for &ValType<'src> {
+    fn fmt(&self, formatter: &mut Formatter) {
+        match self {
+            ValType::I32 => formatter.write("i32"),
+            ValType::I64 => formatter.write("i64"),
+            ValType::F32 => formatter.write("f32"),
+            ValType::F64 => formatter.write("f64"),
+            ValType::V128 => unimplemented!(),
+            ValType::Ref(..) => unimplemented!(),
+            ValType::Rtt(..) => unimplemented!(),
+        };
+    }
+}
+
+impl<'src> Fmt for &FuncKind<'src> {
+    fn fmt(&self, formatter: &mut Formatter) {
+        match self {
+            FuncKind::Import(..) => todo!(),
+            FuncKind::Inline { locals, expression } => {
+                formatter.fmt(locals);
+                formatter.fmt(expression);
+            }
+        };
+    }
+}
+
+impl<'src> Fmt for &Vec<Local<'src>> {
+    fn fmt(&self, formatter: &mut Formatter) {
+        if !self.is_empty() {
+            formatter.start_line();
+            formatter.write("(local");
+            for local in self.iter() {
+                formatter.write(" ");
+                formatter.fmt(&local.ty);
+            }
+            formatter.write(")");
+            formatter.end_line();
+        }
+    }
+}
+
+impl<'src> Fmt for &Expression<'src> {
+    fn fmt(&self, formatter: &mut Formatter) {
+        for instruction in self.instrs.iter() {
+            if is_block_end_instr(instruction) {
+                formatter.deindent();
+            }
+            formatter.start_line();
+            formatter.fmt(instruction);
+            formatter.end_line();
+            if is_block_start_instr(instruction) {
+                formatter.indent();
+            }
+        }
+    }
 }
 
 fn is_block_end_instr(instruction: &Instruction) -> bool {
@@ -217,354 +379,376 @@ fn is_block_start_instr(instruction: &Instruction) -> bool {
     )
 }
 
-fn fmt_instr(instruction: &Instruction) -> String {
+impl<'src> Fmt for &Instruction<'src> {
+    fn fmt(&self, formatter: &mut Formatter) {
+        formatter.write(instr_name(self));
+
+        match self {
+            Instruction::I32Const(n) => {
+                formatter.write(" ");
+                formatter.fmt(n);
+            }
+            Instruction::I64Const(n) => {
+                formatter.write(" ");
+                formatter.fmt(n);
+            }
+            Instruction::F32Const(f) => {
+                formatter.write(" ");
+                formatter.fmt(f);
+            }
+            Instruction::F64Const(f) => {
+                formatter.write(" ");
+                formatter.fmt(f);
+            },
+            Instruction::LocalGet(index)
+            | Instruction::LocalSet(index)
+            | Instruction::LocalTee(index)
+            | Instruction::GlobalGet(index)
+            | Instruction::GlobalSet(index) => {
+                formatter.write(" ");
+                formatter.fmt(index);
+            }
+            Instruction::I32Load8s(memarg)
+            | Instruction::I32Load8u(memarg)
+            | Instruction::I64Load8s(memarg)
+            | Instruction::I64Load8u(memarg)
+            | Instruction::I32Store8(memarg)
+            | Instruction::I64Store8(memarg) => {
+                if !memarg_is_default(memarg, 1) {
+                    formatter.write(" ");
+                    formatter.fmt(memarg);
+                }
+            },
+            Instruction::I32Load16s(memarg)
+            | Instruction::I32Load16u(memarg)
+            | Instruction::I64Load16s(memarg)
+            | Instruction::I64Load16u(memarg)
+            | Instruction::I32Store16(memarg)
+            | Instruction::I64Store16(memarg) => {
+                if !memarg_is_default(memarg, 2) {
+                    formatter.write(" ");
+                    formatter.fmt(memarg);
+                }
+            },
+            Instruction::I32Load(memarg)
+            | Instruction::F32Load(memarg)
+            | Instruction::I64Load32s(memarg)
+            | Instruction::I64Load32u(memarg)
+            | Instruction::I32Store(memarg)
+            | Instruction::F32Store(memarg)
+            | Instruction::I64Store32(memarg) => {
+                if !memarg_is_default(memarg, 4) {
+                    formatter.write(" ");
+                    formatter.fmt(memarg);
+                }
+            },
+            Instruction::I64Load(memarg)
+            | Instruction::F64Load(memarg)
+            | Instruction::I64Store(memarg)
+            | Instruction::F64Store(memarg) => {
+                if !memarg_is_default(memarg, 8) {
+                    formatter.write(" ");
+                    formatter.fmt(memarg);
+                }
+            }
+            Instruction::MemorySize(memory_arg)
+            | Instruction::MemoryGrow(memory_arg) => {
+                if let Index::Num(n, ..) = memory_arg.mem {
+                    if n != 0 {
+                        unimplemented!()
+                    }
+                };
+            }
+            Instruction::Br(index)
+            | Instruction::BrIf(index) => {
+                formatter.write(" ");
+                formatter.fmt(index);
+            }
+            Instruction::BrTable(indices) => {
+                formatter.write(" ");
+                formatter.fmt(indices);
+            }
+            Instruction::Call(index) => {
+                formatter.write(" ");
+                formatter.fmt(index);
+            }
+            Instruction::CallIndirect(call_indirect) => {
+                formatter.write(" ");
+                formatter.fmt(&call_indirect.ty);
+            }
+            Instruction::Block(bt)
+            | Instruction::Loop(bt)
+            | Instruction::If(bt) if !bt_is_empty(bt) => {
+                formatter.write(" ");
+                formatter.fmt(bt);
+            },
+            _ => {},
+        };
+    }
+}
+
+fn instr_name(instruction: &Instruction) -> &'static str {
     match instruction {
         // Numeric instructions
-        Instruction::I32Const(n) => {
-            format!("i32.const {}", n)
-        }
-        Instruction::I64Const(n) => {
-            format!("i64.const {}", n)
-        }
-        Instruction::F32Const(f) => {
-            format!("f32.const {}", f32::from_bits(f.bits))
-        }
-        Instruction::F64Const(f) => {
-            format!("f64.const {}", f64::from_bits(f.bits))
-        }
+        Instruction::I32Const(..) => "i32.const",
+        Instruction::I64Const(..) => "i64.const",
+        Instruction::F32Const(..) => "f32.const",
+        Instruction::F64Const(..) => "f64.const",
 
-        Instruction::I32Clz => "i32.clz".to_owned(),
-        Instruction::I32Ctz => "i32.ctz".to_owned(),
-        Instruction::I32Popcnt => "i32.popcnt".to_owned(),
-        Instruction::I32Add => "i32.add".to_owned(),
-        Instruction::I32Sub => "i32.sub".to_owned(),
-        Instruction::I32Mul => "i32.mul".to_owned(),
-        Instruction::I32DivS => "i32.div_s".to_owned(),
-        Instruction::I32DivU => "i32.div_u".to_owned(),
-        Instruction::I32RemS => "i32.rem_s".to_owned(),
-        Instruction::I32RemU => "i32.rem_u".to_owned(),
-        Instruction::I32And => "i32.and".to_owned(),
-        Instruction::I32Or => "i32.or".to_owned(),
-        Instruction::I32Xor => "i32.xor".to_owned(),
-        Instruction::I32Shl => "i32.shl".to_owned(),
-        Instruction::I32ShrS => "i32.shr_s".to_owned(),
-        Instruction::I32ShrU => "i32.shr_u".to_owned(),
-        Instruction::I32Rotl => "i32.rotl".to_owned(),
-        Instruction::I32Rotr => "i32.rotr".to_owned(),
+        Instruction::I32Clz => "i32.clz",
+        Instruction::I32Ctz => "i32.ctz",
+        Instruction::I32Popcnt => "i32.popcnt",
+        Instruction::I32Add => "i32.add",
+        Instruction::I32Sub => "i32.sub",
+        Instruction::I32Mul => "i32.mul",
+        Instruction::I32DivS => "i32.div_s",
+        Instruction::I32DivU => "i32.div_u",
+        Instruction::I32RemS => "i32.rem_s",
+        Instruction::I32RemU => "i32.rem_u",
+        Instruction::I32And => "i32.and",
+        Instruction::I32Or => "i32.or",
+        Instruction::I32Xor => "i32.xor",
+        Instruction::I32Shl => "i32.shl",
+        Instruction::I32ShrS => "i32.shr_s",
+        Instruction::I32ShrU => "i32.shr_u",
+        Instruction::I32Rotl => "i32.rotl",
+        Instruction::I32Rotr => "i32.rotr",
 
-        Instruction::I64Clz => "i64.clz".to_owned(),
-        Instruction::I64Ctz => "i64.ctz".to_owned(),
-        Instruction::I64Popcnt => "i64.popcnt".to_owned(),
-        Instruction::I64Add => "i64.add".to_owned(),
-        Instruction::I64Sub => "i64.sub".to_owned(),
-        Instruction::I64Mul => "i64.mul".to_owned(),
-        Instruction::I64DivS => "i64.div_s".to_owned(),
-        Instruction::I64DivU => "i64.div_u".to_owned(),
-        Instruction::I64RemS => "i64.rem_s".to_owned(),
-        Instruction::I64RemU => "i64.rem_u".to_owned(),
-        Instruction::I64And => "i64.and".to_owned(),
-        Instruction::I64Or => "i64.or".to_owned(),
-        Instruction::I64Xor => "i64.xor".to_owned(),
-        Instruction::I64Shl => "i64.shl".to_owned(),
-        Instruction::I64ShrS => "i64.shr_s".to_owned(),
-        Instruction::I64ShrU => "i64.shr_u".to_owned(),
-        Instruction::I64Rotl => "i64.rotl".to_owned(),
-        Instruction::I64Rotr => "i64.rotr".to_owned(),
+        Instruction::I64Clz => "i64.clz",
+        Instruction::I64Ctz => "i64.ctz",
+        Instruction::I64Popcnt => "i64.popcnt",
+        Instruction::I64Add => "i64.add",
+        Instruction::I64Sub => "i64.sub",
+        Instruction::I64Mul => "i64.mul",
+        Instruction::I64DivS => "i64.div_s",
+        Instruction::I64DivU => "i64.div_u",
+        Instruction::I64RemS => "i64.rem_s",
+        Instruction::I64RemU => "i64.rem_u",
+        Instruction::I64And => "i64.and",
+        Instruction::I64Or => "i64.or",
+        Instruction::I64Xor => "i64.xor",
+        Instruction::I64Shl => "i64.shl",
+        Instruction::I64ShrS => "i64.shr_s",
+        Instruction::I64ShrU => "i64.shr_u",
+        Instruction::I64Rotl => "i64.rotl",
+        Instruction::I64Rotr => "i64.rotr",
 
-        Instruction::F32Abs => "f32.abs".to_owned(),
-        Instruction::F32Neg => "f32.neg".to_owned(),
-        Instruction::F32Sqrt => "f32.sqrt".to_owned(),
-        Instruction::F32Ceil => "f32.ceil".to_owned(),
-        Instruction::F32Floor => "f32.floor".to_owned(),
-        Instruction::F32Trunc => "f32.trunc".to_owned(),
-        Instruction::F32Nearest => "f32.nearest".to_owned(),
-        Instruction::F32Add => "f32.add".to_owned(),
-        Instruction::F32Sub => "f32.sub".to_owned(),
-        Instruction::F32Div => "f32.div".to_owned(),
-        Instruction::F32Min => "f32.min".to_owned(),
-        Instruction::F32Max => "f32.max".to_owned(),
-        Instruction::F32Copysign => "f32.copysign".to_owned(),
+        Instruction::F32Abs => "f32.abs",
+        Instruction::F32Neg => "f32.neg",
+        Instruction::F32Sqrt => "f32.sqrt",
+        Instruction::F32Ceil => "f32.ceil",
+        Instruction::F32Floor => "f32.floor",
+        Instruction::F32Trunc => "f32.trunc",
+        Instruction::F32Nearest => "f32.nearest",
+        Instruction::F32Add => "f32.add",
+        Instruction::F32Sub => "f32.sub",
+        Instruction::F32Div => "f32.div",
+        Instruction::F32Min => "f32.min",
+        Instruction::F32Max => "f32.max",
+        Instruction::F32Copysign => "f32.copysign",
 
-        Instruction::F64Abs => "f32.abs".to_owned(),
-        Instruction::F64Neg => "f32.neg".to_owned(),
-        Instruction::F64Sqrt => "f32.sqrt".to_owned(),
-        Instruction::F64Ceil => "f32.ceil".to_owned(),
-        Instruction::F64Floor => "f32.floor".to_owned(),
-        Instruction::F64Trunc => "f32.trunc".to_owned(),
-        Instruction::F64Nearest => "f32.nearest".to_owned(),
-        Instruction::F64Add => "f32.add".to_owned(),
-        Instruction::F64Sub => "f32.sub".to_owned(),
-        Instruction::F64Div => "f32.div".to_owned(),
-        Instruction::F64Min => "f32.min".to_owned(),
-        Instruction::F64Max => "f32.max".to_owned(),
-        Instruction::F64Copysign => "f32.copysign".to_owned(),
+        Instruction::F64Abs => "f32.abs",
+        Instruction::F64Neg => "f32.neg",
+        Instruction::F64Sqrt => "f32.sqrt",
+        Instruction::F64Ceil => "f32.ceil",
+        Instruction::F64Floor => "f32.floor",
+        Instruction::F64Trunc => "f32.trunc",
+        Instruction::F64Nearest => "f32.nearest",
+        Instruction::F64Add => "f32.add",
+        Instruction::F64Sub => "f32.sub",
+        Instruction::F64Div => "f32.div",
+        Instruction::F64Min => "f32.min",
+        Instruction::F64Max => "f32.max",
+        Instruction::F64Copysign => "f32.copysign",
 
-        Instruction::I32Eqz => "i32.eqz".to_owned(),
-        Instruction::I32Eq => "i32.eq".to_owned(),
-        Instruction::I32Ne => "i32.ne".to_owned(),
-        Instruction::I32LtS => "i32.lt_s".to_owned(),
-        Instruction::I32LtU => "i32.lt_u".to_owned(),
-        Instruction::I32GtS => "i32.gt_s".to_owned(),
-        Instruction::I32GtU => "i32.gt_u".to_owned(),
-        Instruction::I32LeS => "i32.le_s".to_owned(),
-        Instruction::I32LeU => "i32.le_u".to_owned(),
-        Instruction::I32GeS => "i32.ge_s".to_owned(),
-        Instruction::I32GeU => "i32.ge_u".to_owned(),
+        Instruction::I32Eqz => "i32.eqz",
+        Instruction::I32Eq => "i32.eq",
+        Instruction::I32Ne => "i32.ne",
+        Instruction::I32LtS => "i32.lt_s",
+        Instruction::I32LtU => "i32.lt_u",
+        Instruction::I32GtS => "i32.gt_s",
+        Instruction::I32GtU => "i32.gt_u",
+        Instruction::I32LeS => "i32.le_s",
+        Instruction::I32LeU => "i32.le_u",
+        Instruction::I32GeS => "i32.ge_s",
+        Instruction::I32GeU => "i32.ge_u",
 
-        Instruction::I64Eqz => "i64.eqz".to_owned(),
-        Instruction::I64Eq => "i64.eq".to_owned(),
-        Instruction::I64Ne => "i64.ne".to_owned(),
-        Instruction::I64LtS => "i64.lt_s".to_owned(),
-        Instruction::I64LtU => "i64.lt_u".to_owned(),
-        Instruction::I64GtS => "i64.gt_s".to_owned(),
-        Instruction::I64GtU => "i64.gt_u".to_owned(),
-        Instruction::I64LeS => "i64.le_s".to_owned(),
-        Instruction::I64LeU => "i64.le_u".to_owned(),
-        Instruction::I64GeS => "i64.ge_s".to_owned(),
-        Instruction::I64GeU => "i64.ge_u".to_owned(),
+        Instruction::I64Eqz => "i64.eqz",
+        Instruction::I64Eq => "i64.eq",
+        Instruction::I64Ne => "i64.ne",
+        Instruction::I64LtS => "i64.lt_s",
+        Instruction::I64LtU => "i64.lt_u",
+        Instruction::I64GtS => "i64.gt_s",
+        Instruction::I64GtU => "i64.gt_u",
+        Instruction::I64LeS => "i64.le_s",
+        Instruction::I64LeU => "i64.le_u",
+        Instruction::I64GeS => "i64.ge_s",
+        Instruction::I64GeU => "i64.ge_u",
 
-        Instruction::F32Eq => "f32.eq".to_owned(),
-        Instruction::F32Ne => "f32.ne".to_owned(),
-        Instruction::F32Lt => "f32.lt".to_owned(),
-        Instruction::F32Gt => "f32.gt".to_owned(),
-        Instruction::F32Le => "f32.le".to_owned(),
-        Instruction::F32Ge => "f32.ge".to_owned(),
+        Instruction::F32Eq => "f32.eq",
+        Instruction::F32Ne => "f32.ne",
+        Instruction::F32Lt => "f32.lt",
+        Instruction::F32Gt => "f32.gt",
+        Instruction::F32Le => "f32.le",
+        Instruction::F32Ge => "f32.ge",
 
-        Instruction::F64Eq => "f32.eq".to_owned(),
-        Instruction::F64Ne => "f32.ne".to_owned(),
-        Instruction::F64Lt => "f32.lt".to_owned(),
-        Instruction::F64Gt => "f32.gt".to_owned(),
-        Instruction::F64Le => "f32.le".to_owned(),
-        Instruction::F64Ge => "f32.ge".to_owned(),
+        Instruction::F64Eq => "f32.eq",
+        Instruction::F64Ne => "f32.ne",
+        Instruction::F64Lt => "f32.lt",
+        Instruction::F64Gt => "f32.gt",
+        Instruction::F64Le => "f32.le",
+        Instruction::F64Ge => "f32.ge",
 
-        Instruction::I32WrapI64 => "i32.wrap_i64".to_owned(),
-        Instruction::I32TruncF32S => "i32.trunc_f32_s".to_owned(),
-        Instruction::I32TruncF32U => "i32.trunc_f32_u".to_owned(),
-        Instruction::I32TruncF64S => "i32.trunc_f64_s".to_owned(),
-        Instruction::I32TruncF64U => "i32.trunc_f32_u".to_owned(),
-        Instruction::I32TruncSatF32S => "i32.trunc_sat_f32_s".to_owned(),
-        Instruction::I32TruncSatF32U => "i32.trunc_sat_f32_u".to_owned(),
-        Instruction::I32TruncSatF64S => "i32.trunc_sat_f64_s".to_owned(),
-        Instruction::I32TruncSatF64U => "i32.trunc_sat_f64_u".to_owned(),
-        Instruction::I64ExtendI32S => "i64.extend_i32_s".to_owned(),
-        Instruction::I64ExtendI32U => "i64.extend_i32_u".to_owned(),
-        Instruction::I64TruncF32S => "i64.trunc_f32_s".to_owned(),
-        Instruction::I64TruncF32U => "i64.trunc_f_32_u".to_owned(),
-        Instruction::I64TruncF64S => "i64.trunc_f64_s".to_owned(),
-        Instruction::I64TruncF64U => "i64.trunc_f64_u".to_owned(),
-        Instruction::I64TruncSatF32S => "i64.trunc_sat_f32_s".to_owned(),
-        Instruction::I64TruncSatF32U => "i64.trunc_sat_f32_u".to_owned(),
-        Instruction::I64TruncSatF64S => "i64.trunc_sat_f64_s".to_owned(),
-        Instruction::I64TruncSatF64U => "i64.trunc_sat_f64_u".to_owned(),
-        Instruction::F32ConvertI32S => "f32.convert_i32_s".to_owned(),
-        Instruction::F32ConvertI32U => "f32.convert_i32_u".to_owned(),
-        Instruction::F32ConvertI64S => "f32.convert_i64_s".to_owned(),
-        Instruction::F32ConvertI64U => "f32.convert_i64_u".to_owned(),
-        Instruction::F32DemoteF64 => "f32.demote_f64".to_owned(),
-        Instruction::F64ConvertI32S => "f64.convert_i32_s".to_owned(),
-        Instruction::F64ConvertI32U => "f64.convert_i32_u".to_owned(),
-        Instruction::F64ConvertI64S => "f64.convert_i64_s".to_owned(),
-        Instruction::F64ConvertI64U => "f64.convert_i64_u".to_owned(),
-        Instruction::F64PromoteF32 => "f64.promote_f32".to_owned(),
-        Instruction::I32ReinterpretF32 => "i32.reinterpret_f32".to_owned(),
-        Instruction::I64ReinterpretF64 => "i64.reinterpret_f64".to_owned(),
-        Instruction::F32ReinterpretI32 => "f32.reinterpret_i32".to_owned(),
-        Instruction::F64ReinterpretI64 => "f64.reinterpret_i64".to_owned(),
+        Instruction::I32WrapI64 => "i32.wrap_i64",
+        Instruction::I32TruncF32S => "i32.trunc_f32_s",
+        Instruction::I32TruncF32U => "i32.trunc_f32_u",
+        Instruction::I32TruncF64S => "i32.trunc_f64_s",
+        Instruction::I32TruncF64U => "i32.trunc_f32_u",
+        Instruction::I32TruncSatF32S => "i32.trunc_sat_f32_s",
+        Instruction::I32TruncSatF32U => "i32.trunc_sat_f32_u",
+        Instruction::I32TruncSatF64S => "i32.trunc_sat_f64_s",
+        Instruction::I32TruncSatF64U => "i32.trunc_sat_f64_u",
+        Instruction::I64ExtendI32S => "i64.extend_i32_s",
+        Instruction::I64ExtendI32U => "i64.extend_i32_u",
+        Instruction::I64TruncF32S => "i64.trunc_f32_s",
+        Instruction::I64TruncF32U => "i64.trunc_f_32_u",
+        Instruction::I64TruncF64S => "i64.trunc_f64_s",
+        Instruction::I64TruncF64U => "i64.trunc_f64_u",
+        Instruction::I64TruncSatF32S => "i64.trunc_sat_f32_s",
+        Instruction::I64TruncSatF32U => "i64.trunc_sat_f32_u",
+        Instruction::I64TruncSatF64S => "i64.trunc_sat_f64_s",
+        Instruction::I64TruncSatF64U => "i64.trunc_sat_f64_u",
+        Instruction::F32ConvertI32S => "f32.convert_i32_s",
+        Instruction::F32ConvertI32U => "f32.convert_i32_u",
+        Instruction::F32ConvertI64S => "f32.convert_i64_s",
+        Instruction::F32ConvertI64U => "f32.convert_i64_u",
+        Instruction::F32DemoteF64 => "f32.demote_f64",
+        Instruction::F64ConvertI32S => "f64.convert_i32_s",
+        Instruction::F64ConvertI32U => "f64.convert_i32_u",
+        Instruction::F64ConvertI64S => "f64.convert_i64_s",
+        Instruction::F64ConvertI64U => "f64.convert_i64_u",
+        Instruction::F64PromoteF32 => "f64.promote_f32",
+        Instruction::I32ReinterpretF32 => "i32.reinterpret_f32",
+        Instruction::I64ReinterpretF64 => "i64.reinterpret_f64",
+        Instruction::F32ReinterpretI32 => "f32.reinterpret_i32",
+        Instruction::F64ReinterpretI64 => "f64.reinterpret_i64",
 
-        Instruction::I32Extend8S => "i32.extend_8_s".to_owned(),
-        Instruction::I32Extend16S => "i32.extend_16_s".to_owned(),
+        Instruction::I32Extend8S => "i32.extend_8_s",
+        Instruction::I32Extend16S => "i32.extend_16_s",
 
-        Instruction::I64Extend8S => "i64.extend_8_s".to_owned(),
-        Instruction::I64Extend16S => "i64.extend_16_s".to_owned(),
-        Instruction::I64Extend32S => "i64.extend_32_s".to_owned(),
+        Instruction::I64Extend8S => "i64.extend_8_s",
+        Instruction::I64Extend16S => "i64.extend_16_s",
+        Instruction::I64Extend32S => "i64.extend_32_s",
 
         // Parametric instructions
-        Instruction::Drop => "drop".to_owned(),
-        Instruction::Select(_types) => "select".to_owned(),
+        Instruction::Drop => "drop",
+        Instruction::Select(_types) => "select",
 
         // Variable instructions
-        Instruction::LocalGet(index) => {
-            format!("local.get {}", fmt_index(index))
-        }
-        Instruction::LocalSet(index) => {
-            format!("local.set {}", fmt_index(index))
-        }
-        Instruction::LocalTee(index) => {
-            format!("local.tee {}", fmt_index(index))
-        }
-        Instruction::GlobalGet(index) => {
-            format!("global.get {}", fmt_index(index))
-        }
-        Instruction::GlobalSet(index) => {
-            format!("global.set {}", fmt_index(index))
-        }
+        Instruction::LocalGet(..) => "local.get",
+        Instruction::LocalSet(..) => "local.set",
+        Instruction::LocalTee(..) => "local.tee",
+        Instruction::GlobalGet(..) => "global.get",
+        Instruction::GlobalSet(..) => "global.set",
 
         // Memory instructions
-        Instruction::I32Load(memarg) => format!("i32.load {}", fmt_memarg(&memarg))
-            .trim()
-            .to_owned(),
-        Instruction::I64Load(memarg) => format!("i64.load {}", fmt_memarg(&memarg))
-            .trim()
-            .to_owned(),
-        Instruction::F32Load(memarg) => format!("f32.load {}", fmt_memarg(&memarg))
-            .trim()
-            .to_owned(),
-        Instruction::F64Load(memarg) => format!("f64.load {}", fmt_memarg(&memarg))
-            .trim()
-            .to_owned(),
-        Instruction::I32Load8s(memarg) => format!("i32.load_8_s {}", fmt_memarg(&memarg))
-            .trim()
-            .to_owned(),
-        Instruction::I32Load8u(memarg) => format!("i32.load_8_u {}", fmt_memarg(&memarg))
-            .trim()
-            .to_owned(),
-        Instruction::I32Load16s(memarg) => format!("i32.load_16_s {}", fmt_memarg(&memarg))
-            .trim()
-            .to_owned(),
-        Instruction::I32Load16u(memarg) => format!("i32.load_16_u {}", fmt_memarg(&memarg))
-            .trim()
-            .to_owned(),
-        Instruction::I64Load8s(memarg) => format!("i64.load_8_s {}", fmt_memarg(&memarg))
-            .trim()
-            .to_owned(),
-        Instruction::I64Load8u(memarg) => format!("i64.load_8_u {}", fmt_memarg(&memarg))
-            .trim()
-            .to_owned(),
-        Instruction::I64Load16s(memarg) => format!("i64.load_16_s {}", fmt_memarg(&memarg))
-            .trim()
-            .to_owned(),
-        Instruction::I64Load16u(memarg) => format!("i64.load_16_u {}", fmt_memarg(&memarg))
-            .trim()
-            .to_owned(),
-        Instruction::I64Load32s(memarg) => format!("i64.load_32_s {}", fmt_memarg(&memarg))
-            .trim()
-            .to_owned(),
-        Instruction::I64Load32u(memarg) => format!("i64.load_32_u {}", fmt_memarg(&memarg))
-            .trim()
-            .to_owned(),
-        Instruction::I32Store(memarg) => format!("i32.store {}", fmt_memarg(&memarg))
-            .trim()
-            .to_owned(),
-        Instruction::I64Store(memarg) => format!("i64.store {}", fmt_memarg(&memarg))
-            .trim()
-            .to_owned(),
-        Instruction::F32Store(memarg) => format!("f32.store {}", fmt_memarg(&memarg))
-            .trim()
-            .to_owned(),
-        Instruction::F64Store(memarg) => format!("f64.store {}", fmt_memarg(&memarg))
-            .trim()
-            .to_owned(),
-        Instruction::I32Store8(memarg) => format!("i32.store_8 {}", fmt_memarg(&memarg))
-            .trim()
-            .to_owned(),
-        Instruction::I32Store16(memarg) => format!("i32.store_16 {}", fmt_memarg(&memarg))
-            .trim()
-            .to_owned(),
-        Instruction::I64Store8(memarg) => format!("i64.store_8 {}", fmt_memarg(&memarg))
-            .trim()
-            .to_owned(),
-        Instruction::I64Store16(memarg) => format!("i64.store_16 {}", fmt_memarg(&memarg))
-            .trim()
-            .to_owned(),
-        Instruction::I64Store32(memarg) => format!("i64.store_32 {}", fmt_memarg(&memarg))
-            .trim()
-            .to_owned(),
-        Instruction::MemorySize(memory_arg) => {
-            if let Index::Num(n, ..) = memory_arg.mem {
-                if n != 0 {
-                    unimplemented!()
-                }
-            };
-            "memory.size".to_owned()
-        }
-        Instruction::MemoryGrow(memory_arg) => {
-            if let Index::Num(n, ..) = memory_arg.mem {
-                if n != 0 {
-                    unimplemented!()
-                }
-            };
-            "memory.grow".to_owned()
-        }
+        Instruction::I32Load(..) => "i32.load",
+        Instruction::I64Load(..) => "i64.load",
+        Instruction::F32Load(..) => "f32.load",
+        Instruction::F64Load(..) => "f64.load",
+        Instruction::I32Load8s(..) => "i32.load_8_s",
+        Instruction::I32Load8u(..) => "i32.load_8_u",
+        Instruction::I32Load16s(..) => "i32.load_16_s",
+        Instruction::I32Load16u(..) => "i32.load_16_u",
+        Instruction::I64Load8s(..) => "i64.load_8_s",
+        Instruction::I64Load8u(..) => "i64.load_8_u",
+        Instruction::I64Load16s(..) => "i64.load_16_s",
+        Instruction::I64Load16u(..) => "i64.load_16_u",
+        Instruction::I64Load32s(..) => "i64.load_32_s",
+        Instruction::I64Load32u(..) => "i64.load_32_u",
+        Instruction::I32Store(..) => "i32.store",
+        Instruction::I64Store(..) => "i64.store",
+        Instruction::F32Store(..) => "f32.store",
+        Instruction::F64Store(..) => "f64.store",
+        Instruction::I32Store8(..) => "i32.store_8",
+        Instruction::I32Store16(..) => "i32.store_16",
+        Instruction::I64Store8(..) => "i64.store_8",
+        Instruction::I64Store16(..) => "i64.store_16",
+        Instruction::I64Store32(..) => "i64.store_32",
+        Instruction::MemorySize(..) => "memory.size",
+        Instruction::MemoryGrow(..) => "memory.grow",
 
         // Control instructions
-        Instruction::Unreachable => "unreachable".to_owned(),
-        Instruction::Nop => "nop".to_owned(),
-        Instruction::Br(index) => {
-            format!("br {}", fmt_index(index))
-        }
-        Instruction::BrIf(index) => {
-            format!("br_if {}", fmt_index(index))
-        }
-        Instruction::BrTable(indices) => {
-            format!("br_table {}", fmt_branch_indices(indices))
-        }
-        Instruction::Return => "return".to_owned(),
-        Instruction::Call(index) => {
-            format!("call {}", fmt_index(index))
-        }
-        Instruction::CallIndirect(call_indirect) => {
-            format!("call_indirect {}", fmt_ty_use(&call_indirect.ty))
-        }
-        Instruction::Block(bt) => format!("block {}", fmt_blocktype(bt)).trim().to_owned(),
-        Instruction::Loop(bt) => format!("loop {}", fmt_blocktype(bt)).trim().to_owned(),
-        Instruction::If(bt) => format!("if {}", fmt_blocktype(bt)).trim().to_owned(),
+        Instruction::Unreachable => "unreachable",
+        Instruction::Nop => "nop",
+        Instruction::Br(..) => "br",
+        Instruction::BrIf(..) => "br_if",
+        Instruction::BrTable(..) => "br_table",
+        Instruction::Return => "return",
+        Instruction::Call(..) => "call",
+        Instruction::CallIndirect(..) => "call_indirect",
+        Instruction::Block(..) => "block",
+        Instruction::Loop(..) => "loop",
+        Instruction::If(..) => "if",
         // TODO: id
-        Instruction::Else(..) => "else".to_owned(),
-        Instruction::End(..) => "end".to_owned(),
+        Instruction::Else(..) => "else",
+        Instruction::End(..) => "end",
         _ => unimplemented!(),
     }
 }
 
+fn bt_is_empty(block_type: &BlockType) -> bool {
+    block_type.label.is_none() && ty_use_is_empty(&block_type.ty)
+}
+
+fn ty_use_is_empty<'a>(ty_use: &TypeUse<'a, FunctionType<'a>>) -> bool {
+    ty_use.index.is_none() && ty_use.inline.as_ref().map(|ty| func_ty_is_empty(&ty)).unwrap_or(false)
+}
+
+fn func_ty_is_empty<'a>(func_ty: &FunctionType<'a>) -> bool {
+    func_ty.params.is_empty() && func_ty.results.is_empty()
+}
+
+fn memarg_is_default<'a>(memarg: &MemArg<'a>, access_size: u32) -> bool {
+    memarg.offset == 0 && memarg.align == access_size
+}
+
 // TODO: id
-fn fmt_blocktype(blocktype: &BlockType) -> String {
-    fmt_ty_use(&blocktype.ty)
-}
-
-fn fmt_branch_indices(indices: &BrTableIndices) -> String {
-    let mut buf = String::new();
-    for label in &indices.labels {
-        buf.push_str(&fmt_index(label));
-    }
-    buf.push_str(&fmt_index(&indices.default));
-    buf
-}
-
-fn fmt_export(export: Export) -> String {
-    let mut buf = String::new();
-
-    buf.push_str("(export ");
-    buf.push_str(&fmt_string(export.name));
-    buf.push(' ');
-    buf.push_str(&fmt_export_kind(export.kind));
-    buf.push_str(")\n");
-    buf
-}
-
-fn fmt_export_kind(kind: ExportKind) -> String {
-    match kind {
-        ExportKind::Func(index) => {
-            format!("(func {})", fmt_index(&index))
+impl<'src> Fmt for &BlockType<'src> {
+    fn fmt(&self, formatter: &mut Formatter) {
+        if let Some(label) = &self.label {
+            formatter.fmt(label);
+            formatter.write(" ");
         }
-        ExportKind::Type(..) => todo!(),
-        ExportKind::Global(..) => todo!(),
-        ExportKind::Instance(..) => todo!(),
-        ExportKind::Memory(..) => todo!(),
-        ExportKind::Table(..) => todo!(),
-        ExportKind::Module(..) => todo!(),
-        ExportKind::Event(..) => todo!(),
+        formatter.fmt(&self.ty);
     }
 }
 
-fn fmt_string(string: &str) -> String {
-    format!("\"{}\"", string)
+impl<'src> Fmt for &BrTableIndices<'src> {
+    fn fmt(&self, formatter: &mut Formatter) {
+        for label in &self.labels {
+            formatter.fmt(label);
+        }
+        formatter.fmt(&self.default);
+    }
 }
 
-fn fmt_memarg(memarg: &MemArg) -> String {
-    format!(
-        "offset={offset} align={align}",
-        offset = memarg.offset,
-        align = memarg.align
-    )
+impl<'src> Fmt for &'src str {
+    fn fmt(&self, formatter: &mut Formatter) {
+        formatter.write("\"");
+        formatter.write(self);
+        formatter.write("\"");
+    }
+}
+
+impl<'src> Fmt for &MemArg<'src> {
+    fn fmt(&self, formatter: &mut Formatter) {
+        formatter.write(&format!(
+            "offset={offset} align={align}",
+            offset = self.offset,
+            align = self.align
+        ));
+    }
 }
 
 #[cfg(test)]
