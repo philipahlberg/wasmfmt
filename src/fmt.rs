@@ -801,4 +801,12 @@ mod test {
         let actual = fmt(input);
         assert_eq!(actual, expected);
     }
+
+    #[test]
+    fn memory_grow() {
+        let input = include_str!("../tests/data/input/memory_grow.wat");
+        let expected = include_str!("../tests/data/output/memory_grow.wat");
+        let actual = fmt(input);
+        assert_eq!(actual, expected);
+    }
 }
