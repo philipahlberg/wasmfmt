@@ -1,4 +1,9 @@
-use wast::{BlockType, BrTableIndices, Export, ExportKind, Expression, Float32, Float64, Func, FuncKind, FunctionType, Id, Index, Instruction, Local, MemArg, Module, ModuleField, ModuleKind, NameAnnotation, Type, TypeDef, TypeUse, ValType, Wat, parser::{self, ParseBuffer}};
+use wast::{
+    parser::{self, ParseBuffer},
+    BlockType, BrTableIndices, Export, ExportKind, Expression, Float32, Float64, Func, FuncKind,
+    FunctionType, Id, Index, Instruction, Local, MemArg, Module, ModuleField, ModuleKind,
+    NameAnnotation, Type, TypeDef, TypeUse, ValType, Wat,
+};
 
 pub struct Formatter {
     buffer: String,
@@ -173,9 +178,14 @@ impl<'src> Fmt for &TypeDef<'src> {
 
 impl<'src> Fmt for &FunctionType<'src> {
     fn fmt(&self, formatter: &mut Formatter) {
-        formatter.write("(func ");
+        formatter.write("(func");
+        if !self.params.is_empty() {
+            formatter.write(" ");
+        }
         formatter.fmt(&*self.params);
-        formatter.write(" ");
+        if !self.results.is_empty() {
+            formatter.write(" ");
+        }
         formatter.fmt(&*self.results);
         formatter.write(")");
     }
@@ -204,10 +214,12 @@ impl<'src> Fmt for &TypeUse<'src, FunctionType<'src>> {
     fn fmt(&self, formatter: &mut Formatter) {
         if let Some(index) = self.index {
             formatter.fmt(&index);
-            formatter.write(" ");
         };
-    
+
         if let Some(functy) = &self.inline {
+            if self.index.is_some() {
+                formatter.write(" ");
+            }
             formatter.fmt(&*functy.params);
             if !functy.params.is_empty() {
                 formatter.write(" ");
@@ -273,7 +285,7 @@ impl<'src> Fmt for &Id<'src> {
         formatter.write("$");
         formatter.write(self.name());
     }
-} 
+}
 
 type Param<'src> = (
     Option<Id<'src>>,
@@ -399,7 +411,7 @@ impl<'src> Fmt for &Instruction<'src> {
             Instruction::F64Const(f) => {
                 formatter.write(" ");
                 formatter.fmt(f);
-            },
+            }
             Instruction::LocalGet(index)
             | Instruction::LocalSet(index)
             | Instruction::LocalTee(index)
@@ -418,7 +430,7 @@ impl<'src> Fmt for &Instruction<'src> {
                     formatter.write(" ");
                     formatter.fmt(memarg);
                 }
-            },
+            }
             Instruction::I32Load16s(memarg)
             | Instruction::I32Load16u(memarg)
             | Instruction::I64Load16s(memarg)
@@ -429,7 +441,7 @@ impl<'src> Fmt for &Instruction<'src> {
                     formatter.write(" ");
                     formatter.fmt(memarg);
                 }
-            },
+            }
             Instruction::I32Load(memarg)
             | Instruction::F32Load(memarg)
             | Instruction::I64Load32s(memarg)
@@ -441,7 +453,7 @@ impl<'src> Fmt for &Instruction<'src> {
                     formatter.write(" ");
                     formatter.fmt(memarg);
                 }
-            },
+            }
             Instruction::I64Load(memarg)
             | Instruction::F64Load(memarg)
             | Instruction::I64Store(memarg)
@@ -451,16 +463,14 @@ impl<'src> Fmt for &Instruction<'src> {
                     formatter.fmt(memarg);
                 }
             }
-            Instruction::MemorySize(memory_arg)
-            | Instruction::MemoryGrow(memory_arg) => {
+            Instruction::MemorySize(memory_arg) | Instruction::MemoryGrow(memory_arg) => {
                 if let Index::Num(n, ..) = memory_arg.mem {
                     if n != 0 {
                         unimplemented!()
                     }
                 };
             }
-            Instruction::Br(index)
-            | Instruction::BrIf(index) => {
+            Instruction::Br(index) | Instruction::BrIf(index) => {
                 formatter.write(" ");
                 formatter.fmt(index);
             }
@@ -476,13 +486,13 @@ impl<'src> Fmt for &Instruction<'src> {
                 formatter.write(" ");
                 formatter.fmt(&call_indirect.ty);
             }
-            Instruction::Block(bt)
-            | Instruction::Loop(bt)
-            | Instruction::If(bt) if !bt_is_empty(bt) => {
-                formatter.write(" ");
-                formatter.fmt(bt);
-            },
-            _ => {},
+            Instruction::Block(bt) | Instruction::Loop(bt) | Instruction::If(bt) => {
+                if !bt_is_empty(bt) {
+                    formatter.write(" ");
+                    formatter.fmt(bt);
+                }
+            }
+            _ => {}
         };
     }
 }
@@ -702,7 +712,12 @@ fn bt_is_empty(block_type: &BlockType) -> bool {
 }
 
 fn ty_use_is_empty<'a>(ty_use: &TypeUse<'a, FunctionType<'a>>) -> bool {
-    ty_use.index.is_none() && ty_use.inline.as_ref().map(|ty| func_ty_is_empty(&ty)).unwrap_or(false)
+    ty_use.index.is_none()
+        && ty_use
+            .inline
+            .as_ref()
+            .map(|ty| func_ty_is_empty(&ty))
+            .unwrap_or(false)
 }
 
 fn func_ty_is_empty<'a>(func_ty: &FunctionType<'a>) -> bool {

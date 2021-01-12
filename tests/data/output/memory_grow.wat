@@ -12,17 +12,17 @@
 	)
 	(export "load_at_page_size" (func 2))
 	(func 0 (result i32)
-		i32.const 0x10000
+		i32.const 65536
 		i32.load
 	)
 	(export "store_at_page_size" (func 3))
-	(func
-		i32.const 0x10000
+	(func 1
+		i32.const 65536
 		i32.const 3
 		i32.store
 	)
 	(export "grow" (func 4))
-	(func 2 (param 0 i32) (result i32)
+	(func 2 (param i32) (result i32)
 		local.get 0
 		memory.grow
 	)
@@ -31,6 +31,6 @@
 		memory.size
 	)
 	(type (func (result i32)))
-	(type (func ))
+	(type (func))
 	(type (func (param i32) (result i32)))
 )
