@@ -39,7 +39,7 @@ pub struct Options {
     file: Option<PathBuf>,
 }
 
-pub enum Mode {
+enum Mode {
     Fix,
     Check,
 }
