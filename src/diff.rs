@@ -10,10 +10,7 @@ pub struct Diff<'src, 'fmt> {
 impl<'src, 'fmt> Diff<'src, 'fmt> {
     pub fn from(source: &'src str, formatted: &'fmt str) -> Option<Self> {
         if source != formatted {
-            Some(Self {
-                source,
-                formatted,
-            })
+            Some(Self { source, formatted })
         } else {
             None
         }
@@ -60,7 +57,9 @@ mod test {
             foo
             Formatted:
             bar
-            ".trim().unindent()
+            "
+            .trim()
+            .unindent()
         );
     }
 }
