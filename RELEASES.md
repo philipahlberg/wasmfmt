@@ -21,9 +21,11 @@ Below is a brief highlight of the PRs that went into this release:
 - [The library now has basic documentation][30]
 - [The CLI `--help` output has been significantly improved][32]
 - [The CLI option `--mode check` is now usable][33]
+- [The RELEASES file, which documents new features and fixes for every release, now exists][38]
 
 [27]: https://github.com/philipahlberg/wasmfmt/pull/27
 [29]: https://github.com/philipahlberg/wasmfmt/pull/29
 [30]: https://github.com/philipahlberg/wasmfmt/pull/30
 [32]: https://github.com/philipahlberg/wasmfmt/pull/32
 [33]: https://github.com/philipahlberg/wasmfmt/pull/33
+[38]: https://github.com/philipahlberg/wasmfmt/pull/38
