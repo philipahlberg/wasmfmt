@@ -25,7 +25,7 @@ fn wasmfmt(args: &[&str]) -> Result<String, String> {
 }
 
 #[test]
-fn add_desugar() {
+fn fix_add_desugar() {
     let expected = include_str!("data/output/add_desugar.wat");
     let actual =
         wasmfmt(&["tests/data/input/add_desugar.wat"]).expect("failed to format add_desugar.wat");
@@ -33,7 +33,7 @@ fn add_desugar() {
 }
 
 #[test]
-fn add_sugar() {
+fn fix_add_sugar() {
     let expected = include_str!("data/output/add_sugar.wat");
     let actual =
         wasmfmt(&["tests/data/input/add_desugar.wat"]).expect("failed to format add_sugar.wat");
@@ -41,7 +41,7 @@ fn add_sugar() {
 }
 
 #[test]
-fn fac_desugar() {
+fn fix_fac_desugar() {
     let expected = include_str!("data/output/fac_desugar.wat");
     let actual =
         wasmfmt(&["tests/data/input/fac_desugar.wat"]).expect("failed to format fac_desugar.wat");
@@ -49,7 +49,7 @@ fn fac_desugar() {
 }
 
 #[test]
-fn fac_sugar() {
+fn fix_fac_sugar() {
     let expected = include_str!("data/output/fac_sugar.wat");
     let actual =
         wasmfmt(&["tests/data/input/fac_sugar.wat"]).expect("failed to format fac_sugar.wat");
@@ -57,9 +57,22 @@ fn fac_sugar() {
 }
 
 #[test]
-fn memory_grow() {
+fn fix_memory_grow() {
     let expected = include_str!("data/output/memory_grow.wat");
     let actual =
         wasmfmt(&["tests/data/input/memory_grow.wat"]).expect("failed to format fac_sugar.wat");
     assert_eq!(actual, expected);
+}
+
+#[test]
+fn check_add_sugar() {
+    let source = include_str!("data/input/add_sugar.wat");
+    let formatted = include_str!("data/output/add_sugar.wat");
+    let result = wasmfmt(&["tests/data/input/add_sugar.wat", "--mode", "check"])
+        .expect("failed to check add_sugar.wat");
+    assert!(result.contains("Difference found."));
+    assert!(result.contains("Source:"));
+    assert!(result.contains(source));
+    assert!(result.contains("Formatted:"));
+    assert!(result.contains(formatted));
 }

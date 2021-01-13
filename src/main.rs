@@ -4,7 +4,7 @@ use std::io::{self, Read, Write};
 use std::path::PathBuf;
 use std::str::FromStr;
 use structopt::StructOpt;
-use wasmfmt::fmt;
+use wasmfmt::{fmt, Diff, Error};
 
 /// Format WebAssembly Text Format code according to a set of style rules.
 #[derive(StructOpt)]
@@ -39,7 +39,7 @@ pub struct Options {
     file: Option<PathBuf>,
 }
 
-pub enum Mode {
+enum Mode {
     Fix,
     Check,
 }
@@ -71,21 +71,14 @@ impl Default for Mode {
     }
 }
 
-#[derive(Debug)]
-enum Error {
-    Io(io::Error),
-}
-
 fn main() -> Result<(), Error> {
     let options = Options::from_args();
 
     let source = match options.file {
-        // If there is a file specified, read its' content
-        Some(file) => fs::read_to_string(file.as_path()).map_err(Error::Io)?,
-        // If there is no file, read from stdin
+        Some(file) => fs::read_to_string(file.as_path())?,
         None => {
             let mut buffer = String::new();
-            io::stdin().read_to_string(&mut buffer).map_err(Error::Io)?;
+            io::stdin().read_to_string(&mut buffer)?;
             buffer
         }
     };
@@ -93,27 +86,24 @@ fn main() -> Result<(), Error> {
     let formatted = fmt(&source);
 
     match options.mode.unwrap_or_default() {
-        // When fixing, write the results to a destination
         Mode::Fix => {
             match options.output {
-                // If there is an output file specified, write the result to it
                 Some(path) => {
-                    fs::write(path, formatted).map_err(Error::Io)?;
+                    fs::write(path, formatted)?;
                 }
-                // If there is no file, write to stdout
                 None => {
-                    io::stdout()
-                        .write_all(formatted.as_bytes())
-                        .map_err(Error::Io)?;
+                    io::stdout().write_all(formatted.as_bytes())?;
                 }
             };
+            Ok(())
         }
-        // When checking, highlight any mismatch and exit
-        // with an error code if there are any mismatches
         Mode::Check => {
-            todo!()
+            if let Some(diff) = Diff::from(&source, &formatted) {
+                io::stdout().write_fmt(format_args!("{}", diff))?;
+                io::stdout().flush().unwrap();
+                std::process::exit(1);
+            };
+            Ok(())
         }
-    };
-
-    Ok(())
+    }
 }
