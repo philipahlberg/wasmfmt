@@ -14,10 +14,7 @@ pub struct Formatter {
 impl Formatter {
     /// Construct a new formatter with an empty buffer and zero initial indentation.
     pub fn new() -> Self {
-        Self {
-            buffer: String::new(),
-            indentation: 0,
-        }
+        Self::default()
     }
 
     fn indent(&mut self) {
@@ -48,6 +45,15 @@ impl Formatter {
 
     fn fmt<T: Fmt>(&mut self, v: T) {
         v.fmt(self);
+    }
+}
+
+impl Default for Formatter {
+    fn default() -> Self {
+        Self {
+            buffer: String::default(),
+            indentation: usize::default(),
+        }
     }
 }
 
