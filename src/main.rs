@@ -4,7 +4,7 @@ use std::io::{self, Read, Write};
 use std::path::PathBuf;
 use std::str::FromStr;
 use structopt::StructOpt;
-use wasmfmt::{diff, fmt};
+use wasmfmt::fmt;
 
 #[derive(StructOpt)]
 pub struct Options {
@@ -90,10 +90,7 @@ fn main() -> Result<(), Error> {
         // When checking, highlight any mismatch and exit
         // with an error code if there are any mismatches
         Mode::Check => {
-            if source != formatted {
-                let diff = diff(&source, &formatted);
-                io::stdout().write_all(diff.as_bytes()).map_err(Error::Io)?;
-            }
+            todo!()
         }
     };
 
