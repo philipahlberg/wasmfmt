@@ -1,9 +1,7 @@
-mod check;
+mod diff;
 mod error;
-mod fix;
 mod fmt;
 
-pub use check::check;
+pub use diff::Diff;
 pub use error::Error;
-pub use fix::fix;
 pub use fmt::{fmt, Fmt, Formatter};

@@ -4,7 +4,7 @@ use std::io::{self, Read, Write};
 use std::path::PathBuf;
 use std::str::FromStr;
 use structopt::StructOpt;
-use wasmfmt::{check, fix, fmt, Error};
+use wasmfmt::{Diff, fmt, Error};
 
 /// Format WebAssembly Text Format code according to a set of style rules.
 #[derive(StructOpt)]
@@ -85,11 +85,26 @@ fn main() -> Result<(), Error> {
 
     let formatted = fmt(&source);
 
-    let exit_code = match options.mode.unwrap_or_default() {
-        Mode::Fix => fix(&formatted, options.output),
-        Mode::Check => check(&source, &formatted),
-    }?;
+    match options.mode.unwrap_or_default() {
+        Mode::Fix => {
+            match options.output {
+                Some(path) => {
+                    fs::write(path, formatted)?;
+                }
+                None => {
+                    io::stdout().write_all(formatted.as_bytes())?;
+                }
+            };
+            Ok(())
+        },
+        Mode::Check => {
+            if let Some(diff) = Diff::from(&source, &formatted) {
+                io::stdout().write_fmt(format_args!("{}", diff))?;
+                io::stdout().flush().unwrap();
+                std::process::exit(1);
+            };
+            Ok(())
+        },
+    }
 
-    io::stdout().flush().unwrap();
-    std::process::exit(exit_code);
 }
