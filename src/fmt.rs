@@ -5,13 +5,15 @@ use wast::{
     NameAnnotation, Type, TypeDef, TypeUse, ValType, Wat,
 };
 
+/// A formatter used to format individual AST nodes.
 pub struct Formatter {
     buffer: String,
     indentation: usize,
 }
 
 impl Formatter {
-    fn new() -> Self {
+    /// Construct a new formatter with an empty buffer and zero initial indentation.
+    pub fn new() -> Self {
         Self {
             buffer: String::new(),
             indentation: 0,
@@ -55,10 +57,18 @@ impl Into<String> for Formatter {
     }
 }
 
+/// The `Fmt` trait allows individual WebAssembly AST nodes
+/// to be formatted separately.
 pub trait Fmt {
     fn fmt(&self, formatter: &mut Formatter);
 }
 
+/// Format `.wat` source code.
+/// 
+/// Uses tabs for indentation.
+/// Resolves symbolic identifiers and unfolds instruction expressions.
+/// Extracts inline exports and type definitions.
+/// Encodes all number literals in decimal notation.
 pub fn fmt(source: &str) -> String {
     let buffer = ParseBuffer::new(source).unwrap();
     let mut wat = parser::parse::<Wat>(&buffer).unwrap();
