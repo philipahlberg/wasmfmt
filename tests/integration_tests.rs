@@ -1,3 +1,6 @@
+use std::env;
+use std::fs;
+use std::io::Error;
 use std::process::{Command, Stdio};
 
 const BIN: &'static str = env!("CARGO_BIN_EXE_wasmfmt");
@@ -75,4 +78,21 @@ fn check_add_sugar() {
     assert!(result.contains(source));
     assert!(result.contains("Formatted:"));
     assert!(result.contains(formatted));
+}
+
+#[test]
+fn writes_to_output_file() -> Result<(), Error> {
+    let formatted = include_str!("data/output/add_sugar.wat");
+    let tmp = env::temp_dir();
+    let out = tmp.join("out.wat");
+    wasmfmt(&[
+        "tests/data/input/add_sugar.wat",
+        "--output",
+        out.to_str().unwrap(),
+    ])
+    .expect("failed to format add_sugar.wat");
+    let content = fs::read_to_string(&out)?;
+    assert_eq!(content, formatted);
+    fs::remove_file(out)?;
+    Ok(())
 }
