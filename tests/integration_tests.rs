@@ -39,7 +39,10 @@ fn wasmfmt_stdin(input: &str) -> Result<String, String> {
         .as_mut()
         .expect("failed to get stdin handle from process");
 
-    stdin.write_all(input.as_bytes()).expect("failed to write to stdin");
+    stdin
+        .write_all(input.as_bytes())
+        .expect("failed to write to stdin");
+
     stdin.flush().unwrap();
 
     let output = process
@@ -131,8 +134,7 @@ fn writes_to_output_file() -> Result<(), Error> {
 fn reads_from_stdin_if_no_file_is_provided() -> Result<(), Error> {
     let source = include_str!("data/input/add_sugar.wat");
     let formatted = include_str!("data/output/add_sugar.wat");
-    let result = wasmfmt_stdin(source)
-        .expect("failed to format add_sugar.wat");
+    let result = wasmfmt_stdin(source).expect("failed to format add_sugar.wat");
     assert_eq!(result, formatted);
     Ok(())
 }
