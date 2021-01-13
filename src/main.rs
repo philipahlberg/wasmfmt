@@ -6,14 +6,35 @@ use std::str::FromStr;
 use structopt::StructOpt;
 use wasmfmt::fmt;
 
+/// Format WebAssembly Text Format code according to a set of style rules.
 #[derive(StructOpt)]
 pub struct Options {
+    /// Specify the operation mode.
+    ///
+    /// In `fix` mode, the formatted code
+    /// is written to the output destination.
+    /// In `check` mode, the formatted code
+    /// is compared to the source code. If
+    /// any difference is found, an error is
+    /// written to `stdout`, and the process
+    /// exits with code 1. If no difference is
+    /// found, the process exits with code 0.
     #[structopt(short, long)]
     mode: Option<Mode>,
 
+    /// Specify the output file path.
+    ///
+    /// The formatted code will be written to this file.
+    /// If no path is provided, the formatted code
+    /// is written directly to `stdout`.
     #[structopt(short, long)]
     output: Option<PathBuf>,
 
+    /// Specify the input file path.
+    ///
+    /// The source code will be read from this file.
+    /// If no path is provided, source code
+    /// will be read directly from `stdin`.
     #[structopt(parse(from_os_str))]
     file: Option<PathBuf>,
 }
