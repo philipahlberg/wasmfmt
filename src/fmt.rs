@@ -64,7 +64,6 @@ pub trait Fmt {
 }
 
 /// Format `.wat` source code.
-/// 
 /// Uses tabs for indentation.
 /// Resolves symbolic identifiers and unfolds instruction expressions.
 /// Extracts inline exports and type definitions.
