@@ -1,5 +1,9 @@
 name: cargo test
-on: [push, pull_request]
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
 jobs:
   unit_tests:
     runs-on: ubuntu-latest
