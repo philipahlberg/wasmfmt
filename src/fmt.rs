@@ -1,8 +1,9 @@
 use wast::{
     parser::{self, ParseBuffer},
     BlockType, BrTableIndices, Export, ExportKind, Expression, Float32, Float64, Func, FuncKind,
-    FunctionType, Id, Index, Instruction, Local, MemArg, Module, ModuleField, ModuleKind,
-    NameAnnotation, Type, TypeDef, TypeUse, ValType, Wat,
+    FunctionType, Global, GlobalKind, GlobalType, Id, Index, InlineExport, InlineImport,
+    Instruction, Local, MemArg, Module, ModuleField, ModuleKind, NameAnnotation, Type, TypeDef,
+    TypeUse, ValType, Wat,
 };
 
 /// A formatter used to format individual AST nodes.
@@ -124,7 +125,7 @@ impl<'src> Fmt for &ModuleField<'src> {
         match self {
             ModuleField::Type(ty) => formatter.fmt(ty),
             ModuleField::Func(func) => formatter.fmt(func),
-            ModuleField::Global(..) => todo!(),
+            ModuleField::Global(global) => formatter.fmt(global),
             ModuleField::Memory(..) => todo!(),
             ModuleField::Table(..) => todo!(),
             ModuleField::Elem(..) => todo!(),
@@ -164,6 +165,64 @@ impl<'src> Fmt for &Func<'src> {
         formatter.start_line();
         formatter.write(")");
         formatter.end_line();
+    }
+}
+
+impl<'src> Fmt for &Global<'src> {
+    fn fmt(&self, formatter: &mut Formatter) {
+        formatter.start_line();
+        formatter.write("(global ");
+        if let Some(id) = &self.id {
+            formatter.fmt(id);
+            formatter.write(" ");
+        };
+        if let GlobalKind::Import(inline_import) = &self.kind {
+            formatter.fmt(inline_import);
+        } else if !self.exports.names.is_empty() {
+            formatter.fmt(&self.exports);
+        };
+
+        formatter.fmt(&self.ty);
+        if let GlobalKind::Inline(expression) = &self.kind {
+            formatter.fmt(expression);
+        };
+        formatter.write(")");
+        formatter.end_line();
+    }
+}
+
+impl<'src> Fmt for &InlineImport<'src> {
+    fn fmt(&self, formatter: &mut Formatter) {
+        formatter.write("(import ");
+        formatter.write(&self.module);
+        if let Some(field) = &self.field {
+            formatter.write(" ");
+            formatter.write(field);
+        };
+        formatter.write(")");
+    }
+}
+
+impl<'src> Fmt for &InlineExport<'src> {
+    fn fmt(&self, formatter: &mut Formatter) {
+        formatter.write("(export");
+        for name in &self.names {
+            formatter.write(" ");
+            formatter.write(name);
+        }
+        formatter.write(")");
+    }
+}
+
+impl<'src> Fmt for &GlobalType<'src> {
+    fn fmt(&self, formatter: &mut Formatter) {
+        if self.mutable {
+            formatter.fmt("(mut ");
+            formatter.fmt(&self.ty);
+            formatter.fmt(")");
+        } else {
+            formatter.fmt(&self.ty);
+        }
     }
 }
 
