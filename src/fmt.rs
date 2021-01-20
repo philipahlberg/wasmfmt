@@ -132,7 +132,7 @@ impl<'src> Fmt for &ModuleField<'src> {
             ModuleField::Data(..) => todo!(),
             ModuleField::Export(export) => formatter.fmt(export),
             ModuleField::Import(..) => todo!(),
-            ModuleField::Start(..) => todo!(),
+            ModuleField::Start(index) => formatter.fmt(&Start { index: *index }),
             ModuleField::Custom(..) => todo!(),
             ModuleField::ExportAll(..) => unimplemented!(),
             ModuleField::Event(..) => unimplemented!(),
@@ -140,6 +140,20 @@ impl<'src> Fmt for &ModuleField<'src> {
             ModuleField::NestedModule(..) => unimplemented!(),
             ModuleField::Alias(..) => unimplemented!(),
         };
+    }
+}
+
+struct Start<'src> {
+    index: Index<'src>,
+}
+
+impl<'src> Fmt for &Start<'src> {
+    fn fmt(&self, formatter: &mut Formatter) {
+        formatter.start_line();
+        formatter.write("(start ");
+        formatter.fmt(&self.index);
+        formatter.write(")");
+        formatter.end_line();
     }
 }
 
