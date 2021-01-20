@@ -92,6 +92,13 @@ fn fix_fac_sugar() {
 }
 
 #[test]
+fn fix_global() {
+    let expected = include_str!("data/output/global.wat");
+    let actual = wasmfmt(&["tests/data/input/global.wat"]).expect("failed to format global.wat");
+    assert_eq!(actual, expected);
+}
+
+#[test]
 fn fix_memory_grow() {
     let expected = include_str!("data/output/memory_grow.wat");
     let actual =
