@@ -184,10 +184,24 @@ impl<'src> Fmt for &Global<'src> {
 
         formatter.fmt(&self.ty);
         if let GlobalKind::Inline(expression) = &self.kind {
-            formatter.fmt(expression);
+            formatter.write(" ");
+            formatter.write("(");
+            fmt_inline_expression(expression, formatter);
+            formatter.write(")");
         };
         formatter.write(")");
         formatter.end_line();
+    }
+}
+
+fn fmt_inline_expression<'src>(expression: &Expression<'src>, formatter: &mut Formatter) {
+    let mut instructions = expression.instrs.iter();
+    if let Some(instruction) = instructions.next() {
+        formatter.fmt(instruction);
+    }
+    for instruction in instructions {
+        formatter.write(" ");
+        formatter.fmt(instruction);
     }
 }
 
@@ -217,9 +231,9 @@ impl<'src> Fmt for &InlineExport<'src> {
 impl<'src> Fmt for &GlobalType<'src> {
     fn fmt(&self, formatter: &mut Formatter) {
         if self.mutable {
-            formatter.fmt("(mut ");
+            formatter.write("(mut ");
             formatter.fmt(&self.ty);
-            formatter.fmt(")");
+            formatter.write(")");
         } else {
             formatter.fmt(&self.ty);
         }
