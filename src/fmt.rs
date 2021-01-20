@@ -808,11 +808,11 @@ fn ty_use_is_empty<'a>(ty_use: &TypeUse<'a, FunctionType<'a>>) -> bool {
             .unwrap_or(false)
 }
 
-fn func_ty_is_empty<'a>(func_ty: &FunctionType<'a>) -> bool {
+fn func_ty_is_empty(func_ty: &FunctionType) -> bool {
     func_ty.params.is_empty() && func_ty.results.is_empty()
 }
 
-fn memarg_is_default<'a>(memarg: &MemArg<'a>, access_size: u32) -> bool {
+fn memarg_is_default(memarg: &MemArg, access_size: u32) -> bool {
     memarg.offset == 0 && memarg.align == access_size
 }
 
