@@ -107,6 +107,13 @@ fn fix_memory_grow() {
 }
 
 #[test]
+fn fix_memory() {
+    let expected = include_str!("data/output/memory.wat");
+    let actual = wasmfmt(&["tests/data/input/memory.wat"]).expect("failed to format start.wat");
+    assert_eq!(actual, expected);
+}
+
+#[test]
 fn fix_start() {
     let expected = include_str!("data/output/start.wat");
     let actual = wasmfmt(&["tests/data/input/start.wat"]).expect("failed to format start.wat");
