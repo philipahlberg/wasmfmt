@@ -190,32 +190,23 @@ impl<'src> Fmt for &Global<'src> {
             formatter.fmt(id);
             formatter.write(" ");
         };
+
+        if !self.exports.names.is_empty() {
+            formatter.fmt(&self.exports);
+            formatter.write(" ");
+        };
+
         if let GlobalKind::Import(inline_import) = &self.kind {
             formatter.fmt(inline_import);
-        } else if !self.exports.names.is_empty() {
-            formatter.fmt(&self.exports);
         };
 
         formatter.fmt(&self.ty);
         if let GlobalKind::Inline(expression) = &self.kind {
             formatter.write(" ");
-            formatter.write("(");
-            fmt_inline_expression(expression, formatter);
-            formatter.write(")");
+            formatter.fmt(expression);
         };
         formatter.write(")");
         formatter.end_line();
-    }
-}
-
-fn fmt_inline_expression<'src>(expression: &Expression<'src>, formatter: &mut Formatter) {
-    let mut instructions = expression.instrs.iter();
-    if let Some(instruction) = instructions.next() {
-        formatter.fmt(instruction);
-    }
-    for instruction in instructions {
-        formatter.write(" ");
-        formatter.fmt(instruction);
     }
 }
 
@@ -340,6 +331,19 @@ impl<'src> Fmt for &Index<'src> {
     }
 }
 
+impl<'src> Fmt for &Id<'src> {
+    fn fmt(&self, formatter: &mut Formatter) {
+        if !id_is_gensym(self) {
+            formatter.write("$");
+            formatter.write(self.name());
+        }
+    }
+}
+
+fn id_is_gensym(id: &Id) -> bool {
+    id.name() == "gensym"
+}
+
 impl<'src> Fmt for &u32 {
     fn fmt(&self, formatter: &mut Formatter) {
         formatter.write(&self.to_string());
@@ -379,13 +383,6 @@ impl Fmt for &Float32 {
 impl<'src> Fmt for &Float64 {
     fn fmt(&self, formatter: &mut Formatter) {
         formatter.fmt(&f64::from_bits(self.bits));
-    }
-}
-
-impl<'src> Fmt for &Id<'src> {
-    fn fmt(&self, formatter: &mut Formatter) {
-        formatter.write("$");
-        formatter.write(self.name());
     }
 }
 
@@ -442,7 +439,7 @@ impl<'src> Fmt for &FuncKind<'src> {
             FuncKind::Import(..) => todo!(),
             FuncKind::Inline { locals, expression } => {
                 formatter.fmt(locals);
-                formatter.fmt(expression);
+                fmt_long_expression(expression, formatter);
             }
         };
     }
@@ -465,16 +462,27 @@ impl<'src> Fmt for &Vec<Local<'src>> {
 
 impl<'src> Fmt for &Expression<'src> {
     fn fmt(&self, formatter: &mut Formatter) {
-        for instruction in self.instrs.iter() {
-            if is_block_end_instr(instruction) {
-                formatter.deindent();
-            }
-            formatter.start_line();
+        let mut iter = self.instrs.iter();
+        if let Some(instruction) = iter.next() {
             formatter.fmt(instruction);
-            formatter.end_line();
-            if is_block_start_instr(instruction) {
-                formatter.indent();
-            }
+        }
+        for instruction in iter {
+            formatter.write(" ");
+            formatter.fmt(instruction);
+        }
+    }
+}
+
+fn fmt_long_expression<'src>(expression: &Expression<'src>, formatter: &mut Formatter) {
+    for instruction in expression.instrs.iter() {
+        if is_block_end_instr(instruction) {
+            formatter.deindent();
+        }
+        formatter.start_line();
+        formatter.fmt(instruction);
+        formatter.end_line();
+        if is_block_start_instr(instruction) {
+            formatter.indent();
         }
     }
 }
@@ -495,108 +503,122 @@ fn is_block_start_instr(instruction: &Instruction) -> bool {
 
 impl<'src> Fmt for &Instruction<'src> {
     fn fmt(&self, formatter: &mut Formatter) {
-        formatter.write(instr_name(self));
+        validate_instr(self);
+        let name = instr_name(self);
+        let args = instr_args(self);
 
-        match self {
-            Instruction::I32Const(n) => {
-                formatter.write(" ");
-                formatter.fmt(n);
-            }
-            Instruction::I64Const(n) => {
-                formatter.write(" ");
-                formatter.fmt(n);
-            }
-            Instruction::F32Const(f) => {
-                formatter.write(" ");
-                formatter.fmt(f);
-            }
-            Instruction::F64Const(f) => {
-                formatter.write(" ");
-                formatter.fmt(f);
-            }
-            Instruction::LocalGet(index)
-            | Instruction::LocalSet(index)
-            | Instruction::LocalTee(index)
-            | Instruction::GlobalGet(index)
-            | Instruction::GlobalSet(index) => {
-                formatter.write(" ");
-                formatter.fmt(index);
-            }
-            Instruction::I32Load8s(memarg)
-            | Instruction::I32Load8u(memarg)
-            | Instruction::I64Load8s(memarg)
-            | Instruction::I64Load8u(memarg)
-            | Instruction::I32Store8(memarg)
-            | Instruction::I64Store8(memarg) => {
-                if !memarg_is_default(memarg, 1) {
-                    formatter.write(" ");
-                    formatter.fmt(memarg);
-                }
-            }
-            Instruction::I32Load16s(memarg)
-            | Instruction::I32Load16u(memarg)
-            | Instruction::I64Load16s(memarg)
-            | Instruction::I64Load16u(memarg)
-            | Instruction::I32Store16(memarg)
-            | Instruction::I64Store16(memarg) => {
-                if !memarg_is_default(memarg, 2) {
-                    formatter.write(" ");
-                    formatter.fmt(memarg);
-                }
-            }
-            Instruction::I32Load(memarg)
-            | Instruction::F32Load(memarg)
-            | Instruction::I64Load32s(memarg)
-            | Instruction::I64Load32u(memarg)
-            | Instruction::I32Store(memarg)
-            | Instruction::F32Store(memarg)
-            | Instruction::I64Store32(memarg) => {
-                if !memarg_is_default(memarg, 4) {
-                    formatter.write(" ");
-                    formatter.fmt(memarg);
-                }
-            }
-            Instruction::I64Load(memarg)
-            | Instruction::F64Load(memarg)
-            | Instruction::I64Store(memarg)
-            | Instruction::F64Store(memarg) => {
-                if !memarg_is_default(memarg, 8) {
-                    formatter.write(" ");
-                    formatter.fmt(memarg);
-                }
-            }
-            Instruction::MemorySize(memory_arg) | Instruction::MemoryGrow(memory_arg) => {
-                if let Index::Num(n, ..) = memory_arg.mem {
-                    if n != 0 {
-                        unimplemented!()
-                    }
-                };
-            }
-            Instruction::Br(index) | Instruction::BrIf(index) => {
-                formatter.write(" ");
-                formatter.fmt(index);
-            }
-            Instruction::BrTable(indices) => {
-                formatter.write(" ");
-                formatter.fmt(indices);
-            }
-            Instruction::Call(index) => {
-                formatter.write(" ");
-                formatter.fmt(index);
-            }
-            Instruction::CallIndirect(call_indirect) => {
-                formatter.write(" ");
-                formatter.fmt(&call_indirect.ty);
-            }
-            Instruction::Block(bt) | Instruction::Loop(bt) | Instruction::If(bt) => {
-                if !bt_is_empty(bt) {
-                    formatter.write(" ");
-                    formatter.fmt(bt);
-                }
-            }
-            _ => {}
-        };
+        if let Some(args) = args {
+            formatter.write("(");
+            formatter.write(name);
+            formatter.write(" ");
+            formatter.write(&args);
+            formatter.write(")");
+        } else {
+            formatter.write(name);
+        }
     }
+}
+
+fn validate_instr(instruction: &Instruction) {
+    match instruction {
+        Instruction::MemorySize(memory_arg) | Instruction::MemoryGrow(memory_arg) => {
+            if let Index::Num(n, ..) = memory_arg.mem {
+                if n != 0 {
+                    unimplemented!()
+                }
+            };
+        }
+        _ => {}
+    }
+}
+
+fn instr_args(instruction: &Instruction) -> Option<String> {
+    let mut formatter = Formatter::new();
+    match instruction {
+        Instruction::I32Const(n) => {
+            formatter.fmt(n);
+        }
+        Instruction::I64Const(n) => {
+            formatter.fmt(n);
+        }
+        Instruction::F32Const(f) => {
+            formatter.fmt(f);
+        }
+        Instruction::F64Const(f) => {
+            formatter.fmt(f);
+        }
+        Instruction::LocalGet(index)
+        | Instruction::LocalSet(index)
+        | Instruction::LocalTee(index)
+        | Instruction::GlobalGet(index)
+        | Instruction::GlobalSet(index)
+        | Instruction::Br(index)
+        | Instruction::BrIf(index)
+        | Instruction::Call(index) => {
+            formatter.fmt(index);
+        }
+        Instruction::BrTable(indices) => {
+            formatter.fmt(indices);
+        }
+        Instruction::CallIndirect(call_indirect) => {
+            formatter.fmt(&call_indirect.ty);
+        }
+        Instruction::Block(bt) | Instruction::Loop(bt) | Instruction::If(bt) => {
+            if bt_is_empty(bt) {
+                return None;
+            }
+            formatter.fmt(bt);
+        }
+        Instruction::I32Load8s(memarg)
+        | Instruction::I32Load8u(memarg)
+        | Instruction::I64Load8s(memarg)
+        | Instruction::I64Load8u(memarg)
+        | Instruction::I32Store8(memarg)
+        | Instruction::I64Store8(memarg) => {
+            let access_size = 1;
+            if memarg_is_default(memarg, access_size) {
+                return None;
+            }
+            formatter.fmt(memarg);
+        }
+        Instruction::I32Load16s(memarg)
+        | Instruction::I32Load16u(memarg)
+        | Instruction::I64Load16s(memarg)
+        | Instruction::I64Load16u(memarg)
+        | Instruction::I32Store16(memarg)
+        | Instruction::I64Store16(memarg) => {
+            let access_size = 2;
+            if memarg_is_default(memarg, access_size) {
+                return None;
+            }
+            formatter.fmt(memarg);
+        }
+        Instruction::I32Load(memarg)
+        | Instruction::F32Load(memarg)
+        | Instruction::I64Load32s(memarg)
+        | Instruction::I64Load32u(memarg)
+        | Instruction::I32Store(memarg)
+        | Instruction::F32Store(memarg)
+        | Instruction::I64Store32(memarg) => {
+            let access_size = 4;
+            if memarg_is_default(memarg, access_size) {
+                return None;
+            }
+            formatter.fmt(memarg);
+        }
+        Instruction::I64Load(memarg)
+        | Instruction::F64Load(memarg)
+        | Instruction::I64Store(memarg)
+        | Instruction::F64Store(memarg) => {
+            let access_size = 8;
+            if memarg_is_default(memarg, access_size) {
+                return None;
+            }
+            formatter.fmt(memarg);
+        }
+        _ => return None,
+    };
+    Some(formatter.into())
 }
 
 fn instr_name(instruction: &Instruction) -> &'static str {
