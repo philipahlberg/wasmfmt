@@ -462,7 +462,7 @@ impl<'src> Fmt for &Vec<Local<'src>> {
 
 impl<'src> Fmt for &Expression<'src> {
     fn fmt(&self, formatter: &mut Formatter) {
-        let mut iter = self.instrs.into_iter();
+        let mut iter = self.instrs.iter();
         if let Some(instruction) = iter.next() {
             formatter.fmt(instruction);
         }
@@ -527,8 +527,8 @@ fn validate_instr(instruction: &Instruction) {
                     unimplemented!()
                 }
             };
-        },
-        _ => {},
+        }
+        _ => {}
     }
 }
 
