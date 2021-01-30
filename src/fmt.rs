@@ -1,9 +1,10 @@
 use wast::{
     parser::{self, ParseBuffer},
-    BlockType, BrTableIndices, Data, DataKind, DataVal, Export, ExportKind, Expression, Float32,
-    Float64, Func, FuncKind, FunctionType, Global, GlobalKind, GlobalType, Id, Index, InlineExport,
-    InlineImport, Instruction, Local, MemArg, Memory, MemoryKind, MemoryType, Module, ModuleField,
-    ModuleKind, NameAnnotation, Type, TypeDef, TypeUse, ValType, Wat,
+    BlockType, BrTableIndices, Data, DataKind, DataVal, Elem, ElemKind, ElemPayload, Export,
+    ExportKind, Expression, Float32, Float64, Func, FuncKind, FunctionType, Global, GlobalKind,
+    GlobalType, HeapType, Id, Index, InlineExport, InlineImport, Instruction, Limits, Local,
+    MemArg, Memory, MemoryKind, MemoryType, Module, ModuleField, ModuleKind, NameAnnotation,
+    RefType, Table, TableKind, TableType, Type, TypeDef, TypeUse, ValType, Wat,
 };
 
 /// A formatter used to format individual AST nodes.
@@ -128,8 +129,8 @@ impl<'src> Fmt for &ModuleField<'src> {
             ModuleField::Global(global) => formatter.fmt(global),
             ModuleField::Memory(mem) => formatter.fmt(mem),
             ModuleField::Data(data) => formatter.fmt(data),
-            ModuleField::Table(..) => todo!(),
-            ModuleField::Elem(..) => todo!(),
+            ModuleField::Table(table) => formatter.fmt(table),
+            ModuleField::Elem(element) => formatter.fmt(element),
             ModuleField::Export(export) => formatter.fmt(export),
             ModuleField::Import(..) => todo!(),
             ModuleField::Start(index) => formatter.fmt(&Start { index: *index }),
@@ -140,6 +141,162 @@ impl<'src> Fmt for &ModuleField<'src> {
             ModuleField::NestedModule(..) => unimplemented!(),
             ModuleField::Alias(..) => unimplemented!(),
         };
+    }
+}
+
+impl<'src> Fmt for &Table<'src> {
+    fn fmt(&self, formatter: &mut Formatter) {
+        formatter.start_line();
+        formatter.write("(table ");
+        if let Some(id) = &self.id {
+            formatter.fmt(id);
+            formatter.write(" ");
+        }
+        if !self.exports.names.is_empty() {
+            formatter.fmt(&self.exports);
+            formatter.write(" ");
+        }
+        formatter.fmt(&self.kind);
+        formatter.write(")");
+        formatter.end_line();
+    }
+}
+
+impl<'src> Fmt for &TableKind<'src> {
+    fn fmt(&self, formatter: &mut Formatter) {
+        match self {
+            TableKind::Import { import, ty } => {
+                formatter.fmt(import);
+                formatter.write(" ");
+                formatter.fmt(ty);
+            }
+            TableKind::Normal(ty) => {
+                formatter.fmt(ty);
+            }
+            TableKind::Inline { elem, payload } => {
+                formatter.fmt(elem);
+                if !elem_payload_is_empty(payload) {
+                    formatter.write(" ");
+                    formatter.fmt(payload);
+                }
+            }
+        }
+    }
+}
+
+impl<'src> Fmt for &TableType<'src> {
+    fn fmt(&self, formatter: &mut Formatter) {
+        formatter.fmt(&self.limits);
+        formatter.write(" ");
+        formatter.fmt(&self.elem);
+    }
+}
+
+impl<'src> Fmt for &Limits {
+    fn fmt(&self, formatter: &mut Formatter) {
+        formatter.fmt(self.min);
+        if let Some(max) = self.max {
+            formatter.write(" ");
+            formatter.fmt(max);
+        }
+    }
+}
+
+impl<'src> Fmt for &RefType<'src> {
+    fn fmt(&self, formatter: &mut Formatter) {
+        match self.heap {
+            HeapType::Func => {
+                formatter.write("funcref");
+            }
+            HeapType::Extern => unimplemented!(),
+            HeapType::Any => unimplemented!(),
+            HeapType::Exn => unimplemented!(),
+            HeapType::Eq => unimplemented!(),
+            HeapType::I31 => unimplemented!(),
+            HeapType::Index(..) => unimplemented!(),
+        }
+    }
+}
+
+impl<'src> Fmt for &Elem<'src> {
+    fn fmt(&self, formatter: &mut Formatter) {
+        formatter.start_line();
+        formatter.write("(elem ");
+        if let Some(id) = &self.id {
+            formatter.fmt(id);
+            formatter.write(" ");
+        }
+        formatter.fmt(&self.kind);
+        if !elem_payload_is_empty(&self.payload) {
+            formatter.write(" ");
+            formatter.fmt(&self.payload);
+        }
+        formatter.write(")");
+        formatter.end_line();
+    }
+}
+
+impl<'src> Fmt for &ElemKind<'src> {
+    fn fmt(&self, formatter: &mut Formatter) {
+        match self {
+            ElemKind::Passive => todo!(),
+            ElemKind::Declared => todo!(),
+            ElemKind::Active { table, offset } => {
+                if !index_is_default(table) {
+                    formatter.fmt(table);
+                    formatter.write(" ");
+                }
+                if expr_is_const(offset) {
+                    formatter.fmt(offset);
+                } else {
+                    formatter.write("(offset ");
+                    formatter.fmt(offset);
+                    formatter.write(")");
+                }
+            }
+        };
+    }
+}
+
+fn expr_is_const(expression: &Expression) -> bool {
+    expression.instrs.len() == 1 && instr_is_const(&expression.instrs[0])
+}
+
+fn instr_is_const(instruction: &Instruction) -> bool {
+    match instruction {
+        Instruction::I32Const(..) => true,
+        _ => false,
+    }
+}
+
+impl<'src> Fmt for &ElemPayload<'src> {
+    fn fmt(&self, formatter: &mut Formatter) {
+        match self {
+            ElemPayload::Indices(indices) => {
+                formatter.fmt(indices);
+            }
+            ElemPayload::Exprs { .. } => unimplemented!(),
+        }
+    }
+}
+
+fn elem_payload_is_empty(payload: &ElemPayload) -> bool {
+    match payload {
+        ElemPayload::Indices(indices) => indices.is_empty(),
+        ElemPayload::Exprs { exprs, .. } => exprs.is_empty(),
+    }
+}
+
+impl<'src> Fmt for &Vec<Index<'src>> {
+    fn fmt(&self, formatter: &mut Formatter) {
+        let mut iter = self.iter();
+        if let Some(index) = iter.next() {
+            formatter.fmt(index);
+        }
+        for index in iter {
+            formatter.write(" ");
+            formatter.fmt(index);
+        }
     }
 }
 
@@ -306,11 +463,13 @@ impl<'src> Fmt for &Func<'src> {
         formatter.start_line();
         formatter.write("(func ");
         formatter.fmt(&self.ty);
-        formatter.end_line();
-        formatter.indent();
-        formatter.fmt(&self.kind);
-        formatter.deindent();
-        formatter.start_line();
+        if !func_kind_is_empty(&self.kind) {
+            formatter.end_line();
+            formatter.indent();
+            formatter.fmt(&self.kind);
+            formatter.deindent();
+            formatter.start_line();
+        }
         formatter.write(")");
         formatter.end_line();
     }
@@ -354,6 +513,10 @@ impl<'src> Fmt for &InlineImport<'src> {
         };
         formatter.write(")");
     }
+}
+
+fn inline_import_is_empty(import: &InlineImport) -> bool {
+    import.field.is_none()
 }
 
 impl<'src> Fmt for &InlineExport<'src> {
@@ -461,7 +624,7 @@ impl<'src> Fmt for &TypeUse<'src, FunctionType<'src>> {
 impl<'src> Fmt for &Index<'src> {
     fn fmt(&self, formatter: &mut Formatter) {
         match self {
-            Index::Num(n, ..) => formatter.fmt(n),
+            Index::Num(n, ..) => formatter.fmt(*n),
             Index::Id(id) => formatter.fmt(id),
         };
     }
@@ -480,31 +643,31 @@ fn id_is_gensym(id: &Id) -> bool {
     id.name() == "gensym"
 }
 
-impl<'src> Fmt for &u32 {
+impl<'src> Fmt for u32 {
     fn fmt(&self, formatter: &mut Formatter) {
         formatter.write(&self.to_string());
     }
 }
 
-impl<'src> Fmt for &i32 {
+impl<'src> Fmt for i32 {
     fn fmt(&self, formatter: &mut Formatter) {
         formatter.write(&self.to_string());
     }
 }
 
-impl<'src> Fmt for &i64 {
+impl<'src> Fmt for i64 {
     fn fmt(&self, formatter: &mut Formatter) {
         formatter.write(&self.to_string());
     }
 }
 
-impl<'src> Fmt for &f32 {
+impl<'src> Fmt for f32 {
     fn fmt(&self, formatter: &mut Formatter) {
         formatter.write(&self.to_string());
     }
 }
 
-impl<'src> Fmt for &f64 {
+impl<'src> Fmt for f64 {
     fn fmt(&self, formatter: &mut Formatter) {
         formatter.write(&self.to_string());
     }
@@ -512,13 +675,13 @@ impl<'src> Fmt for &f64 {
 
 impl Fmt for &Float32 {
     fn fmt(&self, formatter: &mut Formatter) {
-        formatter.fmt(&f32::from_bits(self.bits));
+        formatter.fmt(f32::from_bits(self.bits));
     }
 }
 
 impl<'src> Fmt for &Float64 {
     fn fmt(&self, formatter: &mut Formatter) {
-        formatter.fmt(&f64::from_bits(self.bits));
+        formatter.fmt(f64::from_bits(self.bits));
     }
 }
 
@@ -578,6 +741,15 @@ impl<'src> Fmt for &FuncKind<'src> {
                 fmt_long_expression(expression, formatter);
             }
         };
+    }
+}
+
+fn func_kind_is_empty(kind: &FuncKind) -> bool {
+    match kind {
+        FuncKind::Import(import) => inline_import_is_empty(import),
+        FuncKind::Inline { locals, expression } => {
+            locals.is_empty() && expression.instrs.is_empty()
+        }
     }
 }
 
@@ -672,10 +844,10 @@ fn instr_args(instruction: &Instruction) -> Option<String> {
     let mut formatter = Formatter::new();
     match instruction {
         Instruction::I32Const(n) => {
-            formatter.fmt(n);
+            formatter.fmt(*n);
         }
         Instruction::I64Const(n) => {
-            formatter.fmt(n);
+            formatter.fmt(*n);
         }
         Instruction::F32Const(f) => {
             formatter.fmt(f);
