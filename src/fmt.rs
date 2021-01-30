@@ -440,7 +440,9 @@ impl<'src> Fmt for &ExportKind<'src> {
 impl<'src> Fmt for &TypeUse<'src, FunctionType<'src>> {
     fn fmt(&self, formatter: &mut Formatter) {
         if let Some(index) = self.index {
+            formatter.write("(type ");
             formatter.fmt(&index);
+            formatter.write(")");
         };
 
         if let Some(functy) = &self.inline {
