@@ -82,7 +82,23 @@ fn fix_add_desugar() {
 fn fix_add_sugar() {
     let expected = include_str!("data/output/add_sugar.wat");
     let actual =
-        wasmfmt(&["tests/data/input/add_desugar.wat"]).expect("failed to format add_sugar.wat");
+        wasmfmt(&["tests/data/input/add_sugar.wat"]).expect("failed to format add_sugar.wat");
+    assert_eq!(actual, expected);
+    assert_matches!(parse(&actual), Ok(..));
+}
+
+#[test]
+fn fix_elem() {
+    let expected = include_str!("data/output/elem.wat");
+    let actual = wasmfmt(&["tests/data/input/elem.wat"]).expect("failed to format elem.wat");
+    assert_eq!(actual, expected);
+    assert_matches!(parse(&actual), Ok(..));
+}
+
+#[test]
+fn fix_table() {
+    let expected = include_str!("data/output/table.wat");
+    let actual = wasmfmt(&["tests/data/input/table.wat"]).expect("failed to format table.wat");
     assert_eq!(actual, expected);
     assert_matches!(parse(&actual), Ok(..));
 }
