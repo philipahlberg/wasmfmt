@@ -1,9 +1,12 @@
+use assert_matches::assert_matches;
 use std::env;
 use std::fs;
 use std::io::{Error, Write};
 use std::process::{Command, Stdio};
-use wast::{Wat, Error as WastError, parser::{self, ParseBuffer}};
-use assert_matches::assert_matches;
+use wast::{
+    parser::{self, ParseBuffer},
+    Error as WastError, Wat,
+};
 
 const BIN: &'static str = env!("CARGO_BIN_EXE_wasmfmt");
 
