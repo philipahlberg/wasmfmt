@@ -263,10 +263,7 @@ fn expr_is_const(expression: &Expression) -> bool {
 }
 
 fn instr_is_const(instruction: &Instruction) -> bool {
-    match instruction {
-        Instruction::I32Const(..) => true,
-        _ => false,
-    }
+    matches!(instruction, Instruction::I32Const(..))
 }
 
 impl<'src> Fmt for &ElemPayload<'src> {
