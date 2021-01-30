@@ -2,6 +2,8 @@ use std::env;
 use std::fs;
 use std::io::{Error, Write};
 use std::process::{Command, Stdio};
+use wast::{Wat, Error as WastError, parser::{self, ParseBuffer}};
+use assert_matches::assert_matches;
 
 const BIN: &'static str = env!("CARGO_BIN_EXE_wasmfmt");
 
@@ -59,12 +61,18 @@ fn wasmfmt_stdin(input: &str) -> Result<String, String> {
     }
 }
 
+fn parse(input: &str) -> Result<(), WastError> {
+    let buffer = ParseBuffer::new(input).unwrap();
+    parser::parse::<Wat>(&buffer).map(|_| ())
+}
+
 #[test]
 fn fix_add_desugar() {
     let expected = include_str!("data/output/add_desugar.wat");
     let actual =
         wasmfmt(&["tests/data/input/add_desugar.wat"]).expect("failed to format add_desugar.wat");
     assert_eq!(actual, expected);
+    assert_matches!(parse(&actual), Ok(..));
 }
 
 #[test]
@@ -73,6 +81,7 @@ fn fix_add_sugar() {
     let actual =
         wasmfmt(&["tests/data/input/add_desugar.wat"]).expect("failed to format add_sugar.wat");
     assert_eq!(actual, expected);
+    assert_matches!(parse(&actual), Ok(..));
 }
 
 #[test]
@@ -81,6 +90,7 @@ fn fix_fac_desugar() {
     let actual =
         wasmfmt(&["tests/data/input/fac_desugar.wat"]).expect("failed to format fac_desugar.wat");
     assert_eq!(actual, expected);
+    assert_matches!(parse(&actual), Ok(..));
 }
 
 #[test]
@@ -89,6 +99,7 @@ fn fix_fac_sugar() {
     let actual =
         wasmfmt(&["tests/data/input/fac_sugar.wat"]).expect("failed to format fac_sugar.wat");
     assert_eq!(actual, expected);
+    assert_matches!(parse(&actual), Ok(..));
 }
 
 #[test]
@@ -96,6 +107,7 @@ fn fix_global() {
     let expected = include_str!("data/output/global.wat");
     let actual = wasmfmt(&["tests/data/input/global.wat"]).expect("failed to format global.wat");
     assert_eq!(actual, expected);
+    assert_matches!(parse(&actual), Ok(..));
 }
 
 #[test]
@@ -104,6 +116,7 @@ fn fix_memory_grow() {
     let actual =
         wasmfmt(&["tests/data/input/memory_grow.wat"]).expect("failed to format memory_grow.wat");
     assert_eq!(actual, expected);
+    assert_matches!(parse(&actual), Ok(..));
 }
 
 #[test]
@@ -111,6 +124,7 @@ fn fix_memory() {
     let expected = include_str!("data/output/memory.wat");
     let actual = wasmfmt(&["tests/data/input/memory.wat"]).expect("failed to format start.wat");
     assert_eq!(actual, expected);
+    assert_matches!(parse(&actual), Ok(..));
 }
 
 #[test]
@@ -118,6 +132,7 @@ fn fix_start() {
     let expected = include_str!("data/output/start.wat");
     let actual = wasmfmt(&["tests/data/input/start.wat"]).expect("failed to format start.wat");
     assert_eq!(actual, expected);
+    assert_matches!(parse(&actual), Ok(..));
 }
 
 #[test]
@@ -154,8 +169,9 @@ fn writes_to_output_file() -> Result<(), Error> {
 #[test]
 fn reads_from_stdin_if_no_file_is_provided() -> Result<(), Error> {
     let source = include_str!("data/input/add_sugar.wat");
-    let formatted = include_str!("data/output/add_sugar.wat");
-    let result = wasmfmt_stdin(source).expect("failed to format add_sugar.wat");
-    assert_eq!(result, formatted);
+    let expected = include_str!("data/output/add_sugar.wat");
+    let actual = wasmfmt_stdin(source).expect("failed to format add_sugar.wat");
+    assert_eq!(actual, expected);
+    assert_matches!(parse(&actual), Ok(..));
     Ok(())
 }
