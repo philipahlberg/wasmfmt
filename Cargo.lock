@@ -10,6 +10,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "assert_matches"
+version = "1.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "695579f0f2520f3774bb40461e5adb066459d4e0af4d59d20175484fb8e9edf1"
+
+[[package]]
 name = "atty"
 version = "0.2.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -691,6 +697,7 @@ checksum = "7e7811dd7f9398f14cc76efd356f98f03aa30419dea46aa810d71e819fc97158"
 name = "wasmfmt"
 version = "0.1.0"
 dependencies = [
+ "assert_matches",
  "criterion",
  "itertools 0.10.0",
  "structopt",

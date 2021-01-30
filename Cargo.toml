@@ -19,6 +19,7 @@ itertools = "0.10"
 [dev-dependencies]
 criterion = "0.3"
 unindent = "0.1"
+assert_matches = "1.4"
 
 [[bench]]
 name = "fmt"
