@@ -653,13 +653,29 @@ impl<'src> Fmt for &ExportKind<'src> {
                 formatter.fmt(index);
                 formatter.write(")");
             }
-            ExportKind::Type(..) => todo!(),
-            ExportKind::Global(..) => todo!(),
-            ExportKind::Instance(..) => todo!(),
-            ExportKind::Memory(..) => todo!(),
-            ExportKind::Table(..) => todo!(),
-            ExportKind::Module(..) => todo!(),
-            ExportKind::Event(..) => todo!(),
+            ExportKind::Type(index) => {
+                formatter.write("(type ");
+                formatter.fmt(index);
+                formatter.write(")");
+            }
+            ExportKind::Global(index) => {
+                formatter.write("(global ");
+                formatter.fmt(index);
+                formatter.write(")");
+            }
+            ExportKind::Memory(index) => {
+                formatter.write("(memory ");
+                formatter.fmt(index);
+                formatter.write(")");
+            }
+            ExportKind::Table(index) => {
+                formatter.write("(table ");
+                formatter.fmt(index);
+                formatter.write(")");
+            }
+            ExportKind::Event(..) => unimplemented!(),
+            ExportKind::Module(..) => unimplemented!(),
+            ExportKind::Instance(..) => unimplemented!(),
         };
     }
 }
@@ -673,14 +689,14 @@ impl<'src> Fmt for &TypeUse<'src, FunctionType<'src>> {
         };
 
         if let Some(functy) = &self.inline {
-            if self.index.is_some() {
-                formatter.write(" ");
-            }
-            formatter.fmt(&*functy.params);
             if !functy.params.is_empty() {
                 formatter.write(" ");
+                formatter.fmt(&*functy.params);
             }
-            formatter.fmt(&*functy.results);
+            if !functy.results.is_empty() {
+                formatter.write(" ");
+                formatter.fmt(&*functy.results);
+            }
         };
     }
 }

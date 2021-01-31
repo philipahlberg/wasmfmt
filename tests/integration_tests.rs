@@ -97,6 +97,14 @@ fn fix_elem() {
 }
 
 #[test]
+fn fix_exports() {
+    let expected = include_str!("data/output/exports.wat");
+    let actual = wasmfmt(&["tests/data/input/exports.wat"]).expect("failed to format exports.wat");
+    assert_eq!(actual, expected);
+    assert_matches!(parse(&actual), Ok(..));
+}
+
+#[test]
 fn fix_table() {
     let expected = include_str!("data/output/table.wat");
     let actual = wasmfmt(&["tests/data/input/table.wat"]).expect("failed to format table.wat");
