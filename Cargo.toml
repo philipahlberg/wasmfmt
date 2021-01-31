@@ -22,6 +22,10 @@ unindent = "0.1"
 assert_matches = "1.4"
 pretty_assertions = "0.6"
 
+[[bin]]
+name = "wasmfmt"
+path = "src/main.rs"
+
 [[bench]]
 name = "fmt"
 harness = false
