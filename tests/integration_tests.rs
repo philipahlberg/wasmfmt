@@ -71,24 +71,6 @@ fn parse(input: &str) -> Result<(), WastError> {
 }
 
 #[test]
-fn fix_add_desugar() {
-    let expected = include_str!("data/output/add_desugar.wat");
-    let actual =
-        wasmfmt(&["tests/data/input/add_desugar.wat"]).expect("failed to format add_desugar.wat");
-    assert_eq!(actual, expected);
-    assert_matches!(parse(&actual), Ok(..));
-}
-
-#[test]
-fn fix_add_sugar() {
-    let expected = include_str!("data/output/add_sugar.wat");
-    let actual =
-        wasmfmt(&["tests/data/input/add_sugar.wat"]).expect("failed to format add_sugar.wat");
-    assert_eq!(actual, expected);
-    assert_matches!(parse(&actual), Ok(..));
-}
-
-#[test]
 fn fix_elem() {
     let expected = include_str!("data/output/elem.wat");
     let actual = wasmfmt(&["tests/data/input/elem.wat"]).expect("failed to format elem.wat");
@@ -181,10 +163,10 @@ fn fix_start() {
 
 #[test]
 fn check_add_sugar() {
-    let source = include_str!("data/input/add_sugar.wat");
-    let formatted = include_str!("data/output/add_sugar.wat");
-    let result = wasmfmt(&["tests/data/input/add_sugar.wat", "--mode", "check"])
-        .expect("failed to check add_sugar.wat");
+    let source = include_str!("data/input/i32.wat");
+    let formatted = include_str!("data/output/i32.wat");
+    let result =
+        wasmfmt(&["tests/data/input/i32.wat", "--mode", "check"]).expect("failed to check i32.wat");
     assert!(result.contains("Difference found."));
     assert!(result.contains("Source:"));
     assert!(result.contains(source));
@@ -194,15 +176,15 @@ fn check_add_sugar() {
 
 #[test]
 fn writes_to_output_file() -> Result<(), Error> {
-    let formatted = include_str!("data/output/add_sugar.wat");
+    let formatted = include_str!("data/output/i32.wat");
     let tmp = env::temp_dir();
     let out = tmp.join("out.wat");
     let result = wasmfmt(&[
-        "tests/data/input/add_sugar.wat",
+        "tests/data/input/i32.wat",
         "--output",
         out.to_str().unwrap(),
     ])
-    .expect("failed to format add_sugar.wat");
+    .expect("failed to format i32.wat");
     let content = fs::read_to_string(&out)?;
     assert_eq!(content, formatted);
     assert_eq!(result, String::new());
@@ -212,9 +194,9 @@ fn writes_to_output_file() -> Result<(), Error> {
 
 #[test]
 fn reads_from_stdin_if_no_file_is_provided() -> Result<(), Error> {
-    let source = include_str!("data/input/add_sugar.wat");
-    let expected = include_str!("data/output/add_sugar.wat");
-    let actual = wasmfmt_stdin(source).expect("failed to format add_sugar.wat");
+    let source = include_str!("data/input/i32.wat");
+    let expected = include_str!("data/output/i32.wat");
+    let actual = wasmfmt_stdin(source).expect("failed to format i32.wat");
     assert_eq!(actual, expected);
     assert_matches!(parse(&actual), Ok(..));
     Ok(())

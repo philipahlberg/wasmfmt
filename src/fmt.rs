@@ -1281,22 +1281,6 @@ mod test {
     use super::fmt;
 
     #[test]
-    fn add_desugar() {
-        let input = include_str!("../tests/data/input/add_desugar.wat");
-        let expected = include_str!("../tests/data/output/add_desugar.wat");
-        let actual = fmt(input);
-        assert_eq!(actual, expected);
-    }
-
-    #[test]
-    fn add_sugar() {
-        let input = include_str!("../tests/data/input/add_sugar.wat");
-        let expected = include_str!("../tests/data/output/add_sugar.wat");
-        let actual = fmt(input);
-        assert_eq!(actual, expected);
-    }
-
-    #[test]
     fn fac_desugar() {
         let input = include_str!("../tests/data/input/fac_desugar.wat");
         let expected = include_str!("../tests/data/output/fac_desugar.wat");
