@@ -71,65 +71,7 @@ fn parse(input: &str) -> Result<(), WastError> {
 }
 
 #[test]
-fn fix_data() {
-    let expected = include_str!("data/output/data.wat");
-    let actual = wasmfmt(&["tests/data/input/data.wat"]).expect("failed to format data.wat");
-    assert_eq!(actual, expected);
-    assert_matches!(parse(&actual), Ok(..));
-}
-
-#[test]
-fn fix_elem() {
-    let expected = include_str!("data/output/elem.wat");
-    let actual = wasmfmt(&["tests/data/input/elem.wat"]).expect("failed to format elem.wat");
-    assert_eq!(actual, expected);
-    assert_matches!(parse(&actual), Ok(..));
-}
-
-#[test]
-fn fix_exports() {
-    let expected = include_str!("data/output/exports.wat");
-    let actual = wasmfmt(&["tests/data/input/exports.wat"]).expect("failed to format exports.wat");
-    assert_eq!(actual, expected);
-    assert_matches!(parse(&actual), Ok(..));
-}
-
-#[test]
-fn fix_table() {
-    let expected = include_str!("data/output/table.wat");
-    let actual = wasmfmt(&["tests/data/input/table.wat"]).expect("failed to format table.wat");
-    assert_eq!(actual, expected);
-    assert_matches!(parse(&actual), Ok(..));
-}
-
-#[test]
-fn fix_fac_desugar() {
-    let expected = include_str!("data/output/fac_desugar.wat");
-    let actual =
-        wasmfmt(&["tests/data/input/fac_desugar.wat"]).expect("failed to format fac_desugar.wat");
-    assert_eq!(actual, expected);
-    assert_matches!(parse(&actual), Ok(..));
-}
-
-#[test]
-fn fix_fac_sugar() {
-    let expected = include_str!("data/output/fac_sugar.wat");
-    let actual =
-        wasmfmt(&["tests/data/input/fac_sugar.wat"]).expect("failed to format fac_sugar.wat");
-    assert_eq!(actual, expected);
-    assert_matches!(parse(&actual), Ok(..));
-}
-
-#[test]
-fn fix_global() {
-    let expected = include_str!("data/output/global.wat");
-    let actual = wasmfmt(&["tests/data/input/global.wat"]).expect("failed to format global.wat");
-    assert_eq!(actual, expected);
-    assert_matches!(parse(&actual), Ok(..));
-}
-
-#[test]
-fn fix_i32() {
+fn fix_mode_works() {
     let expected = include_str!("data/output/i32.wat");
     let actual = wasmfmt(&["tests/data/input/i32.wat"]).expect("failed to format i32.wat");
     assert_eq!(actual, expected);
@@ -137,40 +79,7 @@ fn fix_i32() {
 }
 
 #[test]
-fn fix_imports() {
-    let expected = include_str!("data/output/imports.wat");
-    let actual = wasmfmt(&["tests/data/input/imports.wat"]).expect("failed to format imports.wat");
-    assert_eq!(actual, expected);
-    assert_matches!(parse(&actual), Ok(..));
-}
-
-#[test]
-fn fix_memory_grow() {
-    let expected = include_str!("data/output/memory_grow.wat");
-    let actual =
-        wasmfmt(&["tests/data/input/memory_grow.wat"]).expect("failed to format memory_grow.wat");
-    assert_eq!(actual, expected);
-    assert_matches!(parse(&actual), Ok(..));
-}
-
-#[test]
-fn fix_memory() {
-    let expected = include_str!("data/output/memory.wat");
-    let actual = wasmfmt(&["tests/data/input/memory.wat"]).expect("failed to format start.wat");
-    assert_eq!(actual, expected);
-    assert_matches!(parse(&actual), Ok(..));
-}
-
-#[test]
-fn fix_start() {
-    let expected = include_str!("data/output/start.wat");
-    let actual = wasmfmt(&["tests/data/input/start.wat"]).expect("failed to format start.wat");
-    assert_eq!(actual, expected);
-    assert_matches!(parse(&actual), Ok(..));
-}
-
-#[test]
-fn check_add_sugar() {
+fn check_mode_works() {
     let source = include_str!("data/input/i32.wat");
     let formatted = include_str!("data/output/i32.wat");
     let result =

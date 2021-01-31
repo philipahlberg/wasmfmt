@@ -1279,6 +1279,35 @@ impl<'src> Fmt for &MemArg<'src> {
 #[cfg(test)]
 mod test {
     use super::fmt;
+    use assert_matches::assert_matches;
+    use pretty_assertions::assert_eq;
+    use wast::{
+        parser::{self, ParseBuffer},
+        Error as WastError, Wat,
+    };
+
+    fn parse(input: &str) -> Result<(), WastError> {
+        let buffer = ParseBuffer::new(input).unwrap();
+        parser::parse::<Wat>(&buffer).map(|_| ())
+    }
+
+    #[test]
+    fn data() {
+        let input = include_str!("../tests/data/input/data.wat");
+        let expected = include_str!("../tests/data/output/data.wat");
+        let actual = fmt(input);
+        assert_eq!(actual, expected);
+        assert_matches!(parse(&actual), Ok(..));
+    }
+
+    #[test]
+    fn elem() {
+        let input = include_str!("../tests/data/input/elem.wat");
+        let expected = include_str!("../tests/data/output/elem.wat");
+        let actual = fmt(input);
+        assert_eq!(actual, expected);
+        assert_matches!(parse(&actual), Ok(..));
+    }
 
     #[test]
     fn fac_desugar() {
@@ -1286,6 +1315,7 @@ mod test {
         let expected = include_str!("../tests/data/output/fac_desugar.wat");
         let actual = fmt(input);
         assert_eq!(actual, expected);
+        assert_matches!(parse(&actual), Ok(..));
     }
 
     #[test]
@@ -1294,6 +1324,34 @@ mod test {
         let expected = include_str!("../tests/data/output/fac_sugar.wat");
         let actual = fmt(input);
         assert_eq!(actual, expected);
+        assert_matches!(parse(&actual), Ok(..));
+    }
+
+    #[test]
+    fn global() {
+        let input = include_str!("../tests/data/input/global.wat");
+        let expected = include_str!("../tests/data/output/global.wat");
+        let actual = fmt(input);
+        assert_eq!(actual, expected);
+        assert_matches!(parse(&actual), Ok(..));
+    }
+
+    #[test]
+    fn i32() {
+        let input = include_str!("../tests/data/input/i32.wat");
+        let expected = include_str!("../tests/data/output/i32.wat");
+        let actual = fmt(input);
+        assert_eq!(actual, expected);
+        assert_matches!(parse(&actual), Ok(..));
+    }
+
+    #[test]
+    fn imports() {
+        let input = include_str!("../tests/data/input/imports.wat");
+        let expected = include_str!("../tests/data/output/imports.wat");
+        let actual = fmt(input);
+        assert_eq!(actual, expected);
+        assert_matches!(parse(&actual), Ok(..));
     }
 
     #[test]
@@ -1302,5 +1360,33 @@ mod test {
         let expected = include_str!("../tests/data/output/memory_grow.wat");
         let actual = fmt(input);
         assert_eq!(actual, expected);
+        assert_matches!(parse(&actual), Ok(..));
+    }
+
+    #[test]
+    fn memory() {
+        let input = include_str!("../tests/data/input/memory.wat");
+        let expected = include_str!("../tests/data/output/memory.wat");
+        let actual = fmt(input);
+        assert_eq!(actual, expected);
+        assert_matches!(parse(&actual), Ok(..));
+    }
+
+    #[test]
+    fn start() {
+        let input = include_str!("../tests/data/input/start.wat");
+        let expected = include_str!("../tests/data/output/start.wat");
+        let actual = fmt(input);
+        assert_eq!(actual, expected);
+        assert_matches!(parse(&actual), Ok(..));
+    }
+
+    #[test]
+    fn table() {
+        let input = include_str!("../tests/data/input/table.wat");
+        let expected = include_str!("../tests/data/output/table.wat");
+        let actual = fmt(input);
+        assert_eq!(actual, expected);
+        assert_matches!(parse(&actual), Ok(..));
     }
 }
