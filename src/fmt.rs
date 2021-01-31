@@ -526,6 +526,10 @@ impl<'src> Fmt for &Func<'src> {
     fn fmt(&self, formatter: &mut Formatter) {
         formatter.start_line();
         formatter.write("(func ");
+        if let Some(id) = &self.id {
+            formatter.fmt(id);
+            formatter.write(" ");
+        }
         formatter.fmt(&self.ty);
         if !func_kind_is_empty(&self.kind) {
             formatter.end_line();

@@ -1,5 +1,5 @@
 (module
-	(func (type 0)
+	(func $main (type 0)
 		(i32.const 1)
 	)
 	(start 0)
