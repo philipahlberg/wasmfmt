@@ -26,5 +26,5 @@
 		end
 		(local.get 1)
 	)
-	(type (func (param i32) (result i32)))
+	(type $gensym (func (param i32) (result i32)))
 )

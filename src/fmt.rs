@@ -2,9 +2,10 @@ use wast::{
     parser::{self, ParseBuffer},
     BlockType, BrTableIndices, Data, DataKind, DataVal, Elem, ElemKind, ElemPayload, Export,
     ExportKind, Expression, Float32, Float64, Func, FuncKind, FunctionType, Global, GlobalKind,
-    GlobalType, HeapType, Id, Index, InlineExport, InlineImport, Instruction, Limits, Local,
-    MemArg, Memory, MemoryKind, MemoryType, Module, ModuleField, ModuleKind, NameAnnotation,
-    RefType, Table, TableKind, TableType, Type, TypeDef, TypeUse, ValType, Wat,
+    GlobalType, HeapType, Id, Import, Index, InlineExport, InlineImport, Instruction, ItemKind,
+    ItemSig, Limits, Local, MemArg, Memory, MemoryKind, MemoryType, Module, ModuleField,
+    ModuleKind, NameAnnotation, RefType, Table, TableKind, TableType, Type, TypeDef, TypeUse,
+    ValType, Wat,
 };
 
 /// A formatter used to format individual AST nodes.
@@ -132,7 +133,7 @@ impl<'src> Fmt for &ModuleField<'src> {
             ModuleField::Table(table) => formatter.fmt(table),
             ModuleField::Elem(element) => formatter.fmt(element),
             ModuleField::Export(export) => formatter.fmt(export),
-            ModuleField::Import(..) => todo!(),
+            ModuleField::Import(import) => formatter.fmt(import),
             ModuleField::Start(index) => formatter.fmt(&Start { index: *index }),
             ModuleField::Custom(..) => todo!(),
             ModuleField::ExportAll(..) => unimplemented!(),
@@ -141,6 +142,70 @@ impl<'src> Fmt for &ModuleField<'src> {
             ModuleField::NestedModule(..) => unimplemented!(),
             ModuleField::Alias(..) => unimplemented!(),
         };
+    }
+}
+
+impl<'src> Fmt for &Import<'src> {
+    fn fmt(&self, formatter: &mut Formatter) {
+        formatter.start_line();
+        formatter.write("(import ");
+        formatter.fmt(self.module);
+        formatter.write(" ");
+        if let Some(field) = self.field {
+            formatter.fmt(field);
+            formatter.write(" ");
+        }
+        formatter.fmt(&self.item);
+        formatter.write(")");
+        formatter.end_line();
+    }
+}
+
+// TODO: name
+impl<'src> Fmt for &ItemSig<'src> {
+    fn fmt(&self, formatter: &mut Formatter) {
+        // TODO: This should be an impl on `ItemKind`
+        match &self.kind {
+            ItemKind::Func(ty_use) => {
+                formatter.write("(func ");
+                if let Some(id) = &self.id {
+                    formatter.fmt(id);
+                    formatter.write(" ");
+                }
+                formatter.fmt(ty_use);
+                formatter.write(")");
+            }
+            ItemKind::Table(table_ty) => {
+                formatter.write("(table ");
+                if let Some(id) = &self.id {
+                    formatter.fmt(id);
+                    formatter.write(" ");
+                }
+                formatter.fmt(table_ty);
+                formatter.write(")");
+            }
+            ItemKind::Memory(memory_ty) => {
+                formatter.write("(memory ");
+                if let Some(id) = &self.id {
+                    formatter.fmt(id);
+                    formatter.write(" ");
+                }
+                formatter.fmt(memory_ty);
+                formatter.write(")");
+            }
+            ItemKind::Global(global_ty) => {
+                formatter.write("(global ");
+                if let Some(id) = &self.id {
+                    formatter.fmt(id);
+                    formatter.write(" ");
+                }
+                formatter.fmt(global_ty);
+                formatter.write(")");
+            }
+            ItemKind::Event(..) => unimplemented!(),
+            ItemKind::Module(..) => unimplemented!(),
+            ItemKind::Instance(..) => unimplemented!(),
+        }
     }
 }
 
@@ -302,10 +367,8 @@ impl<'src> Fmt for &Memory<'src> {
         formatter.start_line();
         formatter.write("(memory ");
         if let Some(id) = &self.id {
-            if !id_is_gensym(id) {
-                formatter.fmt(id);
-                formatter.write(" ");
-            }
+            formatter.fmt(id);
+            formatter.write(" ");
         };
         if !self.exports.names.is_empty() {
             formatter.fmt(&self.exports);
@@ -449,6 +512,10 @@ impl<'src> Fmt for &Type<'src> {
     fn fmt(&self, formatter: &mut Formatter) {
         formatter.start_line();
         formatter.write("(type ");
+        if let Some(id) = &self.id {
+            formatter.fmt(id);
+            formatter.write(" ");
+        }
         formatter.fmt(&self.def);
         formatter.write(")");
         formatter.end_line();
@@ -629,15 +696,9 @@ impl<'src> Fmt for &Index<'src> {
 
 impl<'src> Fmt for &Id<'src> {
     fn fmt(&self, formatter: &mut Formatter) {
-        if !id_is_gensym(self) {
-            formatter.write("$");
-            formatter.write(self.name());
-        }
+        formatter.write("$");
+        formatter.write(self.name());
     }
-}
-
-fn id_is_gensym(id: &Id) -> bool {
-    id.name() == "gensym"
 }
 
 impl<'src> Fmt for u32 {
@@ -732,7 +793,7 @@ impl<'src> Fmt for &ValType<'src> {
 impl<'src> Fmt for &FuncKind<'src> {
     fn fmt(&self, formatter: &mut Formatter) {
         match self {
-            FuncKind::Import(..) => todo!(),
+            FuncKind::Import(import) => formatter.fmt(import),
             FuncKind::Inline { locals, expression } => {
                 formatter.fmt(locals);
                 fmt_long_expression(expression, formatter);
@@ -1200,7 +1261,7 @@ mod test {
     use super::fmt;
 
     #[test]
-    fn fmt_add_desugar() {
+    fn add_desugar() {
         let input = include_str!("../tests/data/input/add_desugar.wat");
         let expected = include_str!("../tests/data/output/add_desugar.wat");
         let actual = fmt(input);

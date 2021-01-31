@@ -1,4 +1,5 @@
 use assert_matches::assert_matches;
+use pretty_assertions::assert_eq;
 use std::env;
 use std::fs;
 use std::io::{Error, Write};
@@ -125,6 +126,14 @@ fn fix_fac_sugar() {
 fn fix_global() {
     let expected = include_str!("data/output/global.wat");
     let actual = wasmfmt(&["tests/data/input/global.wat"]).expect("failed to format global.wat");
+    assert_eq!(actual, expected);
+    assert_matches!(parse(&actual), Ok(..));
+}
+
+#[test]
+fn fix_imports() {
+    let expected = include_str!("data/output/imports.wat");
+    let actual = wasmfmt(&["tests/data/input/imports.wat"]).expect("failed to format imports.wat");
     assert_eq!(actual, expected);
     assert_matches!(parse(&actual), Ok(..));
 }

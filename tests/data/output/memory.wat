@@ -1,7 +1,7 @@
 (module
 	(memory $m 0)
 	(data 1 (i32.const 0) "inline")
-	(memory 1 1)
+	(memory $gensym 1 1)
 	(memory 1)
 	(memory 0 0)
 	(memory 0 1)
