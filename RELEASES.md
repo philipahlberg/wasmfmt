@@ -1,4 +1,4 @@
-Version 0.1.0 - Unreleased
+Version 0.1.0 - 2021-02-01
 ==========================
 
 This is the initial release of the `wasmfmt` tool and accompanying library.
@@ -16,16 +16,22 @@ With this release, the following features are available:
 
 Below is a brief highlight of the PRs that went into this release:
 
-- [The library function `fmt` has been rewritten for improved ergonomics][27]
 - [The README now contains information on how to install, build, test, and use the tool][29]
 - [The library now has basic documentation][30]
-- [The CLI `--help` output has been significantly improved][32]
-- [The CLI option `--mode check` is now usable][33]
-- [The RELEASES file, which documents new features and fixes for every release, now exists][38]
+- [The CLI option `--mode check` has been added][33]
+- [The library now supports globals][40]
+- [The library now supports start functions][41]
+- [The library now supports memories and data segments][44]
+- [The library now supports tables and element segments][48]
+- [The library now supports imports][50]
+- [The library now supports exports][51]
 
-[27]: https://github.com/philipahlberg/wasmfmt/pull/27
 [29]: https://github.com/philipahlberg/wasmfmt/pull/29
 [30]: https://github.com/philipahlberg/wasmfmt/pull/30
-[32]: https://github.com/philipahlberg/wasmfmt/pull/32
 [33]: https://github.com/philipahlberg/wasmfmt/pull/33
-[38]: https://github.com/philipahlberg/wasmfmt/pull/38
+[40]: https://github.com/philipahlberg/wasmfmt/pull/40
+[41]: https://github.com/philipahlberg/wasmfmt/pull/41
+[44]: https://github.com/philipahlberg/wasmfmt/pull/44
+[48]: https://github.com/philipahlberg/wasmfmt/pull/48
+[50]: https://github.com/philipahlberg/wasmfmt/pull/50
+[51]: https://github.com/philipahlberg/wasmfmt/pull/51
