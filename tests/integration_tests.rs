@@ -139,6 +139,14 @@ fn fix_global() {
 }
 
 #[test]
+fn fix_i32() {
+    let expected = include_str!("data/output/i32.wat");
+    let actual = wasmfmt(&["tests/data/input/i32.wat"]).expect("failed to format i32.wat");
+    assert_eq!(actual, expected);
+    assert_matches!(parse(&actual), Ok(..));
+}
+
+#[test]
 fn fix_imports() {
     let expected = include_str!("data/output/imports.wat");
     let actual = wasmfmt(&["tests/data/input/imports.wat"]).expect("failed to format imports.wat");
