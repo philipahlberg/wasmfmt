@@ -1,6 +1,6 @@
 (module
 	(table $t 10 funcref)
-	(func (type 0))
+	(func $f (type 0))
 	(elem (i32.const 0))
 	(elem (i32.const 0) 0 0)
 	(elem (i32.const 0))
