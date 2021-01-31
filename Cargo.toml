@@ -3,6 +3,12 @@ name = "wasmfmt"
 version = "0.1.0"
 authors = ["philipahlberg <philipahlberg@gmail.com>"]
 edition = "2018"
+repository = "https://github.com/philipahlberg/wasmfmt"
+documentation = "docs.rs/wasmfmt"
+readme = "README.md"
+license = "MIT"
+categories = ["CLI", "WebAssembly"]
+description = "A WebAssembly formatter"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
