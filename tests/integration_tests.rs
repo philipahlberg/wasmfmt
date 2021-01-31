@@ -75,7 +75,7 @@ fn fix_data() {
     let expected = include_str!("data/output/data.wat");
     let actual = wasmfmt(&["tests/data/input/data.wat"]).expect("failed to format data.wat");
     assert_eq!(actual, expected);
-    assert_matches!(parse(&actual), Ok(..));    
+    assert_matches!(parse(&actual), Ok(..));
 }
 
 #[test]
