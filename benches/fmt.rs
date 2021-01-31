@@ -1,33 +1,15 @@
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
 use wasmfmt::fmt;
 
-fn fmt_add_desugar(c: &mut Criterion) {
-    let id = BenchmarkId::new("fmt", "add_desugar");
-    let input = include_str!("../tests/data/input/add_desugar.wat");
-    c.bench_with_input(id, &input, |b, i| b.iter(|| fmt(i)));
-}
-
-fn fmt_add_sugar(c: &mut Criterion) {
-    let id = BenchmarkId::new("fmt", "add_sugar");
-    let input = include_str!("../tests/data/input/add_sugar.wat");
-    c.bench_with_input(id, &input, |b, i| b.iter(|| fmt(i)));
-}
-
-fn fmt_fac_desugar(c: &mut Criterion) {
-    let id = BenchmarkId::new("fmt", "fac_desugar");
-    let input = include_str!("../tests/data/input/fac_desugar.wat");
-    c.bench_with_input(id, &input, |b, i| b.iter(|| fmt(i)));
-}
-
-fn fmt_fac_sugar(c: &mut Criterion) {
-    let id = BenchmarkId::new("fmt", "fac_sugar");
-    let input = include_str!("../tests/data/input/fac_sugar.wat");
+fn fmt_i32(c: &mut Criterion) {
+    let id = BenchmarkId::new("fmt", "i32");
+    let input = include_str!("../tests/data/input/i32.wat");
     c.bench_with_input(id, &input, |b, i| b.iter(|| fmt(i)));
 }
 
 criterion_group! {
     name = benches;
     config = Criterion::default();
-    targets = fmt_add_desugar, fmt_add_sugar, fmt_fac_desugar, fmt_fac_sugar
+    targets = fmt_i32
 }
 criterion_main!(benches);
