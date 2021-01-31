@@ -8,7 +8,7 @@ homepage = "https://github.com/philipahlberg/wasmfmt"
 documentation = "https://docs.rs/wasmfmt"
 readme = "README.md"
 license = "MIT"
-categories = ["CLI", "WebAssembly"]
+categories = ["command-line-interface", "wasm"]
 description = "A WebAssembly formatter"
 
 [workspace]
