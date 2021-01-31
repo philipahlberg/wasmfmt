@@ -30,7 +30,7 @@
 	(func (type 0) (result i32)
 		memory.size
 	)
-	(type (func (result i32)))
-	(type (func))
-	(type (func (param i32) (result i32)))
+	(type $gensym (func (result i32)))
+	(type $gensym (func))
+	(type $gensym (func (param i32) (result i32)))
 )
