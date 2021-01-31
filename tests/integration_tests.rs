@@ -71,6 +71,14 @@ fn parse(input: &str) -> Result<(), WastError> {
 }
 
 #[test]
+fn fix_data() {
+    let expected = include_str!("data/output/data.wat");
+    let actual = wasmfmt(&["tests/data/input/data.wat"]).expect("failed to format data.wat");
+    assert_eq!(actual, expected);
+    assert_matches!(parse(&actual), Ok(..));
+}
+
+#[test]
 fn fix_elem() {
     let expected = include_str!("data/output/elem.wat");
     let actual = wasmfmt(&["tests/data/input/elem.wat"]).expect("failed to format elem.wat");
