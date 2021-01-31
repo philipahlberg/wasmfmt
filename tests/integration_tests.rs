@@ -82,8 +82,8 @@ fn fix_mode_works() {
 fn check_mode_works() {
     let source = include_str!("data/input/i32.wat");
     let formatted = include_str!("data/output/i32.wat");
-    let result =
-        wasmfmt(&["tests/data/input/i32.wat", "--mode", "check"]).expect("failed to check i32.wat");
+    let result = wasmfmt(&["tests/data/input/i32.wat", "--mode", "check"])
+        .expect("failed to check i32.wat");
     assert!(result.contains("Difference found."));
     assert!(result.contains("Source:"));
     assert!(result.contains(source));
