@@ -19,7 +19,6 @@ members = [
 [dependencies]
 structopt = "0.3"
 wast = "30.0"
-itertools = "0.10"
 
 [dev-dependencies]
 criterion = "0.3"
