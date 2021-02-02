@@ -13,5 +13,5 @@
 	(elem $t (i32.const 0) 0 0)
 	(elem $t (i32.const 0))
 	(elem $t (i32.const 0) 0 0)
-	(type $gensym (func))
+	(type (func))
 )

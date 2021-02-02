@@ -169,8 +169,10 @@ impl<'src> Fmt for &ItemSig<'src> {
             ItemKind::Func(ty_use) => {
                 formatter.write("(func ");
                 if let Some(id) = &self.id {
-                    formatter.fmt(id);
-                    formatter.write(" ");
+                    if !id_is_gensym(id) {
+                        formatter.fmt(id);
+                        formatter.write(" ");
+                    }
                 }
                 formatter.fmt(ty_use);
                 formatter.write(")");
@@ -178,8 +180,10 @@ impl<'src> Fmt for &ItemSig<'src> {
             ItemKind::Table(table_ty) => {
                 formatter.write("(table ");
                 if let Some(id) = &self.id {
-                    formatter.fmt(id);
-                    formatter.write(" ");
+                    if !id_is_gensym(id) {
+                        formatter.fmt(id);
+                        formatter.write(" ");
+                    }
                 }
                 formatter.fmt(table_ty);
                 formatter.write(")");
@@ -187,8 +191,10 @@ impl<'src> Fmt for &ItemSig<'src> {
             ItemKind::Memory(memory_ty) => {
                 formatter.write("(memory ");
                 if let Some(id) = &self.id {
-                    formatter.fmt(id);
-                    formatter.write(" ");
+                    if !id_is_gensym(id) {
+                        formatter.fmt(id);
+                        formatter.write(" ");
+                    }
                 }
                 formatter.fmt(memory_ty);
                 formatter.write(")");
@@ -196,8 +202,10 @@ impl<'src> Fmt for &ItemSig<'src> {
             ItemKind::Global(global_ty) => {
                 formatter.write("(global ");
                 if let Some(id) = &self.id {
-                    formatter.fmt(id);
-                    formatter.write(" ");
+                    if !id_is_gensym(id) {
+                        formatter.fmt(id);
+                        formatter.write(" ");
+                    }
                 }
                 formatter.fmt(global_ty);
                 formatter.write(")");
@@ -214,8 +222,10 @@ impl<'src> Fmt for &Table<'src> {
         formatter.start_line();
         formatter.write("(table ");
         if let Some(id) = &self.id {
-            formatter.fmt(id);
-            formatter.write(" ");
+            if !id_is_gensym(id) {
+                formatter.fmt(id);
+                formatter.write(" ");
+            }
         }
         if !self.exports.names.is_empty() {
             formatter.fmt(&self.exports);
@@ -288,8 +298,10 @@ impl<'src> Fmt for &Elem<'src> {
         formatter.start_line();
         formatter.write("(elem ");
         if let Some(id) = &self.id {
-            formatter.fmt(id);
-            formatter.write(" ");
+            if !id_is_gensym(id) {
+                formatter.fmt(id);
+                formatter.write(" ");
+            }
         }
         formatter.fmt(&self.kind);
         if !elem_payload_is_empty(&self.payload) {
@@ -367,8 +379,10 @@ impl<'src> Fmt for &Memory<'src> {
         formatter.start_line();
         formatter.write("(memory ");
         if let Some(id) = &self.id {
-            formatter.fmt(id);
-            formatter.write(" ");
+            if !id_is_gensym(id) {
+                formatter.fmt(id);
+                formatter.write(" ");
+            }
         };
         if !self.exports.names.is_empty() {
             formatter.fmt(&self.exports);
@@ -462,8 +476,10 @@ impl<'src> Fmt for &Data<'src> {
         formatter.start_line();
         formatter.write("(data ");
         if let Some(id) = &self.id {
-            formatter.fmt(id);
-            formatter.write(" ");
+            if !id_is_gensym(id) {
+                formatter.fmt(id);
+                formatter.write(" ");
+            }
         }
         formatter.fmt(&self.kind);
         if !self.data.is_empty() {
@@ -513,8 +529,10 @@ impl<'src> Fmt for &Type<'src> {
         formatter.start_line();
         formatter.write("(type ");
         if let Some(id) = &self.id {
-            formatter.fmt(id);
-            formatter.write(" ");
+            if !id_is_gensym(id) {
+                formatter.fmt(id);
+                formatter.write(" ");
+            }
         }
         formatter.fmt(&self.def);
         formatter.write(")");
@@ -527,8 +545,10 @@ impl<'src> Fmt for &Func<'src> {
         formatter.start_line();
         formatter.write("(func ");
         if let Some(id) = &self.id {
-            formatter.fmt(id);
-            formatter.write(" ");
+            if !id_is_gensym(id) {
+                formatter.fmt(id);
+                formatter.write(" ");
+            }
         }
         formatter.fmt(&self.ty);
         if !func_kind_is_empty(&self.kind) {
@@ -548,8 +568,10 @@ impl<'src> Fmt for &Global<'src> {
         formatter.start_line();
         formatter.write("(global ");
         if let Some(id) = &self.id {
-            formatter.fmt(id);
-            formatter.write(" ");
+            if !id_is_gensym(id) {
+                formatter.fmt(id);
+                formatter.write(" ");
+            }
         };
 
         if !self.exports.names.is_empty() {
@@ -736,6 +758,10 @@ impl<'src> Fmt for &Id<'src> {
         formatter.write("$");
         formatter.write(self.name());
     }
+}
+
+fn id_is_gensym(id: &Id) -> bool {
+    id.name() == "gensym"
 }
 
 impl<'src> Fmt for u32 {

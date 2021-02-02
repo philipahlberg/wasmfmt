@@ -3,5 +3,5 @@
 		(i32.const 1)
 	)
 	(start 0)
-	(type $gensym (func))
+	(type (func))
 )
