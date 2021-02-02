@@ -1,6 +1,6 @@
 (module
 	(export "fac-rec" (func 0))
-	(func $gensym (type 0) (param i64) (result i64)
+	(func (type 0) (param i64) (result i64)
 		(local.get 0)
 		(i64.const 0)
 		i64.eq
@@ -32,7 +32,7 @@
 		end
 	)
 	(export "fac-iter" (func 2))
-	(func $gensym (type 0) (param i64) (result i64)
+	(func (type 0) (param i64) (result i64)
 		(local i64 i64)
 		(local.get 0)
 		(local.set 1)
@@ -61,7 +61,7 @@
 		(local.get 2)
 	)
 	(export "fac-iter-named" (func 3))
-	(func $gensym (type 0) (param i64) (result i64)
+	(func (type 0) (param i64) (result i64)
 		(local i64 i64)
 		(local.get 0)
 		(local.set 1)
@@ -90,7 +90,7 @@
 		(local.get 2)
 	)
 	(export "fac-opt" (func 4))
-	(func $gensym (type 0) (param i64) (result i64)
+	(func (type 0) (param i64) (result i64)
 		(local i64)
 		(i64.const 1)
 		(local.set 1)
@@ -126,7 +126,7 @@
 		(local.get 0)
 	)
 	(export "fac-ssa" (func 7))
-	(func $gensym (type 0) (param i64) (result i64)
+	(func (type 0) (param i64) (result i64)
 		(i64.const 1)
 		(local.get 0)
 		loop $l (type 3)
@@ -144,8 +144,8 @@
 			return
 		end
 	)
-	(type $gensym (func (param i64) (result i64)))
-	(type $gensym (func (param i64) (result i64 i64)))
-	(type $gensym (func (param i64 i64) (result i64 i64 i64)))
-	(type $gensym (func (param i64 i64) (result i64)))
+	(type (func (param i64) (result i64)))
+	(type (func (param i64) (result i64 i64)))
+	(type (func (param i64 i64) (result i64 i64 i64)))
+	(type (func (param i64 i64) (result i64)))
 )
