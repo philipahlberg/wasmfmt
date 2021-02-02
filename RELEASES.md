@@ -1,3 +1,15 @@
+Version 0.1.1 - 2021-02-02
+==========================
+
+Fixed
+
+- [Block instructions are no longer parenthesised][68]
+- [Generated identifiers are no longer rendered][70]
+
+
+[68]: https://github.com/philipahlberg/wasmfmt/pull/68
+[70]: https://github.com/philipahlberg/wasmfmt/pull/70
+
 Version 0.1.0 - 2021-02-01
 ==========================
 
