@@ -3,7 +3,7 @@ use wast::{
     BlockType, BrTableIndices, Data, DataKind, DataVal, Elem, ElemKind, ElemPayload, Export,
     ExportKind, Expression, Float32, Float64, Func, FuncKind, FunctionType, Global, GlobalKind,
     GlobalType, HeapType, Id, Import, Index, InlineExport, InlineImport, Instruction, ItemKind,
-    ItemSig, Limits, Local, MemArg, Memory, MemoryKind, MemoryType, Module, ModuleField,
+    ItemSig, Limits, Local, MemArg, Memory, MemoryArg, MemoryKind, MemoryType, Module, ModuleField,
     ModuleKind, NameAnnotation, RefType, Table, TableKind, TableType, Type, TypeDef, TypeUse,
     ValType, Wat,
 };
@@ -649,6 +649,10 @@ impl<'src> Fmt for &FunctionType<'src> {
     }
 }
 
+fn func_ty_is_empty(func_ty: &FunctionType) -> bool {
+    func_ty.params.is_empty() && func_ty.results.is_empty()
+}
+
 impl<'src> Fmt for &ExportKind<'src> {
     fn fmt(&self, formatter: &mut Formatter) {
         match self {
@@ -694,15 +698,28 @@ impl<'src> Fmt for &TypeUse<'src, FunctionType<'src>> {
 
         if let Some(functy) = &self.inline {
             if !functy.params.is_empty() {
-                formatter.write(" ");
+                if self.index.is_some() {
+                    formatter.write(" ");
+                }
                 formatter.fmt(&*functy.params);
             }
             if !functy.results.is_empty() {
-                formatter.write(" ");
+                if self.index.is_some() || !functy.params.is_empty() {
+                    formatter.write(" ");
+                }
                 formatter.fmt(&*functy.results);
             }
         };
     }
+}
+
+fn ty_use_is_empty<'a>(ty_use: &TypeUse<'a, FunctionType<'a>>) -> bool {
+    ty_use.index.is_none()
+        && ty_use
+            .inline
+            .as_ref()
+            .map(|ty| func_ty_is_empty(&ty))
+            .unwrap_or(false)
 }
 
 impl<'src> Fmt for &Index<'src> {
@@ -889,33 +906,42 @@ fn is_block_start_instr(instruction: &Instruction) -> bool {
 
 impl<'src> Fmt for &Instruction<'src> {
     fn fmt(&self, formatter: &mut Formatter) {
-        validate_instr(self);
+        if !is_valid_instr(self) {
+            unimplemented!();
+        }
         let name = instr_name(self);
         let args = instr_args(self);
-
         if let Some(args) = args {
-            formatter.write("(");
-            formatter.write(name);
-            formatter.write(" ");
-            formatter.write(&args);
-            formatter.write(")");
+            if is_block_start_instr(self) {
+                formatter.write(name);
+                formatter.write(" ");
+                formatter.write(&args);
+            } else {
+                formatter.write("(");
+                formatter.write(name);
+                formatter.write(" ");
+                formatter.write(&args);
+                formatter.write(")");
+            }
         } else {
             formatter.write(name);
         }
     }
 }
 
-fn validate_instr(instruction: &Instruction) {
+fn is_valid_instr(instruction: &Instruction) -> bool {
     match instruction {
-        Instruction::MemorySize(memory_arg) | Instruction::MemoryGrow(memory_arg) => {
-            if let Index::Num(n, ..) = memory_arg.mem {
-                if n != 0 {
-                    unimplemented!()
-                }
-            };
-        }
-        _ => {}
+        Instruction::MemorySize(arg) | Instruction::MemoryGrow(arg) => is_valid_memory_arg(arg),
+        _ => true,
     }
+}
+
+fn is_valid_memory_arg(memory_arg: &MemoryArg) -> bool {
+    is_valid_memory_index(&memory_arg.mem)
+}
+
+fn is_valid_memory_index(index: &Index) -> bool {
+    matches!(index, Index::Num(0, ..))
 }
 
 fn instr_args(instruction: &Instruction) -> Option<String> {
@@ -1217,36 +1243,20 @@ fn instr_name(instruction: &Instruction) -> &'static str {
     }
 }
 
-fn bt_is_empty(block_type: &BlockType) -> bool {
-    block_type.label.is_none() && ty_use_is_empty(&block_type.ty)
-}
-
-fn ty_use_is_empty<'a>(ty_use: &TypeUse<'a, FunctionType<'a>>) -> bool {
-    ty_use.index.is_none()
-        && ty_use
-            .inline
-            .as_ref()
-            .map(|ty| func_ty_is_empty(&ty))
-            .unwrap_or(false)
-}
-
-fn func_ty_is_empty(func_ty: &FunctionType) -> bool {
-    func_ty.params.is_empty() && func_ty.results.is_empty()
-}
-
-fn memarg_is_default(memarg: &MemArg, access_size: u32) -> bool {
-    memarg.offset == 0 && memarg.align == access_size
-}
-
-// TODO: id
 impl<'src> Fmt for &BlockType<'src> {
     fn fmt(&self, formatter: &mut Formatter) {
         if let Some(label) = &self.label {
             formatter.fmt(label);
-            formatter.write(" ");
+            if !ty_use_is_empty(&self.ty) {
+                formatter.write(" ");
+            }
         }
         formatter.fmt(&self.ty);
     }
+}
+
+fn bt_is_empty(block_type: &BlockType) -> bool {
+    block_type.label.is_none() && ty_use_is_empty(&block_type.ty)
 }
 
 impl<'src> Fmt for &BrTableIndices<'src> {
@@ -1274,6 +1284,10 @@ impl<'src> Fmt for &MemArg<'src> {
             align = self.align
         ));
     }
+}
+
+fn memarg_is_default(memarg: &MemArg, access_size: u32) -> bool {
+    memarg.offset == 0 && memarg.align == access_size
 }
 
 #[cfg(test)]
@@ -1310,18 +1324,9 @@ mod test {
     }
 
     #[test]
-    fn fac_desugar() {
-        let input = include_str!("../tests/data/input/fac_desugar.wat");
-        let expected = include_str!("../tests/data/output/fac_desugar.wat");
-        let actual = fmt(input);
-        assert_eq!(actual, expected);
-        assert_matches!(parse(&actual), Ok(..));
-    }
-
-    #[test]
-    fn fac_sugar() {
-        let input = include_str!("../tests/data/input/fac_sugar.wat");
-        let expected = include_str!("../tests/data/output/fac_sugar.wat");
+    fn fac() {
+        let input = include_str!("../tests/data/input/fac.wat");
+        let expected = include_str!("../tests/data/output/fac.wat");
         let actual = fmt(input);
         assert_eq!(actual, expected);
         assert_matches!(parse(&actual), Ok(..));
