@@ -930,14 +930,18 @@ impl<'src> Fmt for &Instruction<'src> {
 }
 
 fn is_valid_instr(instruction: &Instruction) -> bool {
-    matches!(
-        instruction,
-        Instruction::MemorySize(MemoryArg {
-            mem: Index::Num(0, ..)
-        }) | Instruction::MemoryGrow(MemoryArg {
-            mem: Index::Num(0, ..)
-        })
-    )
+    match instruction {
+        Instruction::MemorySize(arg) | Instruction::MemoryGrow(arg) => is_valid_memory_arg(arg),
+        _ => true,
+    }
+}
+
+fn is_valid_memory_arg(memory_arg: &MemoryArg) -> bool {
+    is_valid_memory_index(&memory_arg.mem)
+}
+
+fn is_valid_memory_index(index: &Index) -> bool {
+    matches!(index, Index::Num(0, ..))
 }
 
 fn instr_args(instruction: &Instruction) -> Option<String> {
