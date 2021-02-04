@@ -1,11 +1,12 @@
 use wast::{
+    kw,
     parser::{self, ParseBuffer},
     BlockType, BrTableIndices, Data, DataKind, DataVal, Elem, ElemKind, ElemPayload, Export,
     ExportKind, Expression, Float32, Float64, Func, FuncKind, FunctionType, Global, GlobalKind,
     GlobalType, HeapType, Id, Import, Index, InlineExport, InlineImport, Instruction, ItemKind,
-    ItemSig, Limits, Local, MemArg, Memory, MemoryArg, MemoryKind, MemoryType, Module, ModuleField,
-    ModuleKind, NameAnnotation, RefType, Table, TableKind, TableType, Type, TypeDef, TypeUse,
-    ValType, Wat,
+    ItemRef, ItemSig, Limits, Local, MemArg, Memory, MemoryArg, MemoryKind, MemoryType, Module,
+    ModuleField, ModuleKind, NameAnnotation, RefType, Table, TableKind, TableType, Type, TypeDef,
+    TypeUse, ValType, Wat,
 };
 
 /// A formatter used to format individual AST nodes.
@@ -134,9 +135,10 @@ impl<'src> Fmt for &ModuleField<'src> {
             ModuleField::Elem(element) => formatter.fmt(element),
             ModuleField::Export(export) => formatter.fmt(export),
             ModuleField::Import(import) => formatter.fmt(import),
-            ModuleField::Start(index) => formatter.fmt(&Start { index: *index }),
+            ModuleField::Start(index) => formatter.fmt(&Start {
+                index: *index.unwrap_index(),
+            }),
             ModuleField::Custom(..) => todo!(),
-            ModuleField::ExportAll(..) => unimplemented!(),
             ModuleField::Event(..) => unimplemented!(),
             ModuleField::Instance(..) => unimplemented!(),
             ModuleField::NestedModule(..) => unimplemented!(),
@@ -319,8 +321,9 @@ impl<'src> Fmt for &ElemKind<'src> {
             ElemKind::Passive => todo!(),
             ElemKind::Declared => todo!(),
             ElemKind::Active { table, offset } => {
-                if !index_is_default(table) {
-                    formatter.fmt(table);
+                let index = table.unwrap_index();
+                if !index_is_default(index) {
+                    formatter.fmt(index);
                     formatter.write(" ");
                 }
                 if expr_is_const(offset) {
@@ -346,8 +349,12 @@ fn instr_is_const(instruction: &Instruction) -> bool {
 impl<'src> Fmt for &ElemPayload<'src> {
     fn fmt(&self, formatter: &mut Formatter) {
         match self {
-            ElemPayload::Indices(indices) => {
-                formatter.fmt(indices);
+            ElemPayload::Indices(refs) => {
+                let indices: Vec<Index<'src>> = refs
+                    .iter()
+                    .map(|item_ref| *item_ref.unwrap_index())
+                    .collect();
+                formatter.fmt(&indices);
             }
             ElemPayload::Exprs { .. } => unimplemented!(),
         }
@@ -496,8 +503,9 @@ impl<'src> Fmt for &DataKind<'src> {
         match self {
             DataKind::Passive => todo!(),
             DataKind::Active { memory, offset } => {
-                if !index_is_default(memory) {
-                    formatter.fmt(memory);
+                let index = memory.unwrap_index();
+                if !index_is_default(index) {
+                    formatter.fmt(index);
                     formatter.write(" ");
                 }
                 formatter.fmt(offset);
@@ -638,7 +646,7 @@ impl<'src> Fmt for &Export<'src> {
         formatter.write("(export ");
         formatter.fmt(self.name);
         formatter.write(" ");
-        formatter.fmt(&self.kind);
+        formatter.fmt(&self.index);
         formatter.write(")");
         formatter.end_line();
     }
@@ -675,47 +683,83 @@ fn func_ty_is_empty(func_ty: &FunctionType) -> bool {
     func_ty.params.is_empty() && func_ty.results.is_empty()
 }
 
-impl<'src> Fmt for &ExportKind<'src> {
+impl<'src> Fmt for &ItemRef<'src, ExportKind> {
     fn fmt(&self, formatter: &mut Formatter) {
         match self {
-            ExportKind::Func(index) => {
-                formatter.write("(func ");
-                formatter.fmt(index);
+            ItemRef::Outer { kind, module, idx } => {
+                formatter.write("(");
+                formatter.fmt(kind);
+                formatter.write(" ");
+                formatter.fmt(module);
+                formatter.write(" ");
+                formatter.fmt(idx);
                 formatter.write(")");
             }
-            ExportKind::Type(index) => {
-                formatter.write("(type ");
-                formatter.fmt(index);
+            ItemRef::Item { kind, idx, exports } => {
+                formatter.write("(");
+                formatter.fmt(kind);
+                formatter.write(" ");
+                formatter.fmt(idx);
+                if !exports.is_empty() {
+                    formatter.write(" ");
+                    formatter.fmt(exports);
+                }
                 formatter.write(")");
             }
-            ExportKind::Global(index) => {
-                formatter.write("(global ");
-                formatter.fmt(index);
-                formatter.write(")");
+        }
+    }
+}
+
+impl<'src> Fmt for &Vec<&'src str> {
+    fn fmt(&self, formatter: &mut Formatter) {
+        let mut iter = self.iter();
+        if let Some(name) = iter.next() {
+            formatter.write(name);
+        }
+        for name in iter {
+            formatter.write(" ");
+            formatter.fmt(*name);
+        }
+    }
+}
+
+impl<'src> Fmt for &ExportKind {
+    fn fmt(&self, formatter: &mut Formatter) {
+        match self {
+            ExportKind::Func => {
+                formatter.write("func");
             }
-            ExportKind::Memory(index) => {
-                formatter.write("(memory ");
-                formatter.fmt(index);
-                formatter.write(")");
+            ExportKind::Type => {
+                formatter.write("type");
             }
-            ExportKind::Table(index) => {
-                formatter.write("(table ");
-                formatter.fmt(index);
-                formatter.write(")");
+            ExportKind::Global => {
+                formatter.write("global");
             }
-            ExportKind::Event(..) => unimplemented!(),
-            ExportKind::Module(..) => unimplemented!(),
-            ExportKind::Instance(..) => unimplemented!(),
+            ExportKind::Memory => {
+                formatter.write("memory");
+            }
+            ExportKind::Table => {
+                formatter.write("table");
+            }
+            ExportKind::Event => unimplemented!(),
+            ExportKind::Module => unimplemented!(),
+            ExportKind::Instance => unimplemented!(),
         };
+    }
+}
+
+impl<'src> Fmt for &ItemRef<'src, kw::r#type> {
+    fn fmt(&self, formatter: &mut Formatter) {
+        formatter.write("(type ");
+        formatter.fmt(self.unwrap_index());
+        formatter.write(")");
     }
 }
 
 impl<'src> Fmt for &TypeUse<'src, FunctionType<'src>> {
     fn fmt(&self, formatter: &mut Formatter) {
-        if let Some(index) = self.index {
-            formatter.write("(type ");
-            formatter.fmt(&index);
-            formatter.write(")");
+        if let Some(index) = &self.index {
+            formatter.fmt(index);
         };
 
         if let Some(functy) = &self.inline {
@@ -963,7 +1007,7 @@ fn is_valid_instr(instruction: &Instruction) -> bool {
 }
 
 fn is_valid_memory_arg(memory_arg: &MemoryArg) -> bool {
-    is_valid_memory_index(&memory_arg.mem)
+    is_valid_memory_index(&memory_arg.mem.unwrap_index())
 }
 
 fn is_valid_memory_index(index: &Index) -> bool {
@@ -988,11 +1032,18 @@ fn instr_args(instruction: &Instruction) -> Option<String> {
         Instruction::LocalGet(index)
         | Instruction::LocalSet(index)
         | Instruction::LocalTee(index)
-        | Instruction::GlobalGet(index)
-        | Instruction::GlobalSet(index)
         | Instruction::Br(index)
-        | Instruction::BrIf(index)
-        | Instruction::Call(index) => {
+        | Instruction::BrIf(index) => {
+            formatter.fmt(index);
+        }
+        Instruction::GlobalGet(index_or_ref) | Instruction::GlobalSet(index_or_ref) => {
+            let item_ref = &index_or_ref.0;
+            let index = item_ref.unwrap_index();
+            formatter.fmt(index);
+        }
+        Instruction::Call(index_or_ref) => {
+            let item_ref = &index_or_ref.0;
+            let index = item_ref.unwrap_index();
             formatter.fmt(index);
         }
         Instruction::BrTable(indices) => {
