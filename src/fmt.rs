@@ -1,4 +1,13 @@
-use wast::{BlockType, BrTableIndices, Data, DataKind, DataVal, Elem, ElemKind, ElemPayload, Export, ExportKind, Expression, Float32, Float64, Func, FuncKind, FunctionType, Global, GlobalKind, GlobalType, HeapType, Id, Import, Index, InlineExport, InlineImport, Instruction, ItemKind, ItemRef, ItemSig, Limits, Local, MemArg, Memory, MemoryArg, MemoryKind, MemoryType, Module, ModuleField, ModuleKind, NameAnnotation, RefType, Table, TableKind, TableType, Type, TypeDef, TypeUse, ValType, Wat, kw, parser::{self, ParseBuffer}};
+use wast::{
+    kw,
+    parser::{self, ParseBuffer},
+    BlockType, BrTableIndices, Data, DataKind, DataVal, Elem, ElemKind, ElemPayload, Export,
+    ExportKind, Expression, Float32, Float64, Func, FuncKind, FunctionType, Global, GlobalKind,
+    GlobalType, HeapType, Id, Import, Index, InlineExport, InlineImport, Instruction, ItemKind,
+    ItemRef, ItemSig, Limits, Local, MemArg, Memory, MemoryArg, MemoryKind, MemoryType, Module,
+    ModuleField, ModuleKind, NameAnnotation, RefType, Table, TableKind, TableType, Type, TypeDef,
+    TypeUse, ValType, Wat,
+};
 
 /// A formatter used to format individual AST nodes.
 pub struct Formatter {
@@ -126,7 +135,9 @@ impl<'src> Fmt for &ModuleField<'src> {
             ModuleField::Elem(element) => formatter.fmt(element),
             ModuleField::Export(export) => formatter.fmt(export),
             ModuleField::Import(import) => formatter.fmt(import),
-            ModuleField::Start(index) => formatter.fmt(&Start { index: *index.unwrap_index() }),
+            ModuleField::Start(index) => formatter.fmt(&Start {
+                index: *index.unwrap_index(),
+            }),
             ModuleField::Custom(..) => todo!(),
             ModuleField::Event(..) => unimplemented!(),
             ModuleField::Instance(..) => unimplemented!(),
@@ -339,7 +350,8 @@ impl<'src> Fmt for &ElemPayload<'src> {
     fn fmt(&self, formatter: &mut Formatter) {
         match self {
             ElemPayload::Indices(refs) => {
-                let indices: Vec<Index<'src>> = refs.into_iter()
+                let indices: Vec<Index<'src>> = refs
+                    .iter()
                     .map(|item_ref| *item_ref.unwrap_index())
                     .collect();
                 formatter.fmt(&indices);
@@ -683,7 +695,7 @@ impl<'src> Fmt for &ItemRef<'src, ExportKind> {
                 formatter.fmt(idx);
                 formatter.write(")");
             }
-            ItemRef::Item { kind, idx, exports} => {
+            ItemRef::Item { kind, idx, exports } => {
                 formatter.write("(");
                 formatter.fmt(kind);
                 formatter.write(" ");
@@ -700,7 +712,7 @@ impl<'src> Fmt for &ItemRef<'src, ExportKind> {
 
 impl<'src> Fmt for &Vec<&'src str> {
     fn fmt(&self, formatter: &mut Formatter) {
-        let mut iter = self.into_iter();
+        let mut iter = self.iter();
         if let Some(name) = iter.next() {
             formatter.write(name);
         }
@@ -1024,8 +1036,7 @@ fn instr_args(instruction: &Instruction) -> Option<String> {
         | Instruction::BrIf(index) => {
             formatter.fmt(index);
         }
-        Instruction::GlobalGet(index_or_ref)
-        | Instruction::GlobalSet(index_or_ref) => {
+        Instruction::GlobalGet(index_or_ref) | Instruction::GlobalSet(index_or_ref) => {
             let item_ref = &index_or_ref.0;
             let index = item_ref.unwrap_index();
             formatter.fmt(index);
