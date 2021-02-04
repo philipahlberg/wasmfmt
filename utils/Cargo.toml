@@ -7,4 +7,4 @@ publish = false
 
 [dependencies]
 structopt = "0.3"
-wast = "30.0"
+wast = "32.0"
