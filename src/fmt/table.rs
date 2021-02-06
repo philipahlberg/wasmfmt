@@ -1,4 +1,4 @@
-use super::utils::{elem_payload_is_empty, expr_is_const, id_is_gensym, index_is_default};
+use super::utils::{expr_is_const, id_is_gensym, index_is_default};
 use super::{Fmt, Formatter};
 use wast::{
     Elem, ElemKind, ElemPayload, HeapType, Index, Limits, RefType, Table, TableKind, TableType,
@@ -135,5 +135,12 @@ impl<'src> Fmt for &ElemPayload<'src> {
             }
             ElemPayload::Exprs { .. } => unimplemented!(),
         }
+    }
+}
+
+fn elem_payload_is_empty(payload: &ElemPayload) -> bool {
+    match payload {
+        ElemPayload::Indices(indices) => indices.is_empty(),
+        ElemPayload::Exprs { exprs, .. } => exprs.is_empty(),
     }
 }

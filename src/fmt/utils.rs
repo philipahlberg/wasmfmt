@@ -1,7 +1,7 @@
 use super::Formatter;
 use wast::{
-    BlockType, ElemPayload, Expression, FuncKind, FunctionType, Id, Index, InlineImport,
-    Instruction, MemoryArg, TypeUse,
+    BlockType, Expression, FuncKind, FunctionType, Id, Index, InlineImport, Instruction, MemoryArg,
+    TypeUse,
 };
 
 pub fn expr_is_const(expression: &Expression) -> bool {
@@ -10,13 +10,6 @@ pub fn expr_is_const(expression: &Expression) -> bool {
 
 pub fn instr_is_const(instruction: &Instruction) -> bool {
     matches!(instruction, Instruction::I32Const(..))
-}
-
-pub fn elem_payload_is_empty(payload: &ElemPayload) -> bool {
-    match payload {
-        ElemPayload::Indices(indices) => indices.is_empty(),
-        ElemPayload::Exprs { exprs, .. } => exprs.is_empty(),
-    }
 }
 
 pub fn index_is_default(index: &Index) -> bool {
@@ -55,23 +48,23 @@ pub fn id_is_gensym(id: &Id) -> bool {
 
 pub fn fmt_long_expression<'src>(expression: &Expression<'src>, formatter: &mut Formatter) {
     for instruction in expression.instrs.iter() {
-        if is_block_end_instr(instruction) {
+        if instr_is_block_end(instruction) {
             formatter.deindent();
         }
         formatter.start_line();
         formatter.fmt(instruction);
         formatter.end_line();
-        if is_block_start_instr(instruction) {
+        if instr_is_block_start(instruction) {
             formatter.indent();
         }
     }
 }
 
-pub fn is_block_end_instr(instruction: &Instruction) -> bool {
+pub fn instr_is_block_end(instruction: &Instruction) -> bool {
     matches!(instruction, Instruction::Else(..) | Instruction::End(..))
 }
 
-pub fn is_block_start_instr(instruction: &Instruction) -> bool {
+pub fn instr_is_block_start(instruction: &Instruction) -> bool {
     matches!(
         instruction,
         Instruction::Block(..)
@@ -81,11 +74,11 @@ pub fn is_block_start_instr(instruction: &Instruction) -> bool {
     )
 }
 
-pub fn is_valid_memory_arg(memory_arg: &MemoryArg) -> bool {
-    is_valid_memory_index(&memory_arg.mem.unwrap_index())
+pub fn memory_arg_is_valid(memory_arg: &MemoryArg) -> bool {
+    memory_index_is_valid(&memory_arg.mem.unwrap_index())
 }
 
-pub fn is_valid_memory_index(index: &Index) -> bool {
+pub fn memory_index_is_valid(index: &Index) -> bool {
     matches!(index, Index::Num(0, ..))
 }
 

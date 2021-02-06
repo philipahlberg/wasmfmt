@@ -1,4 +1,4 @@
-use super::utils::{bt_is_empty, is_block_start_instr, is_valid_memory_arg, ty_use_is_empty};
+use super::utils::{bt_is_empty, instr_is_block_start, memory_arg_is_valid, ty_use_is_empty};
 use super::{Fmt, Formatter};
 use wast::{BlockType, BrTableIndices, Instruction, MemArg};
 
@@ -10,7 +10,7 @@ impl<'src> Fmt for &Instruction<'src> {
         let name = instr_name(self);
         let args = instr_args(self);
         if let Some(args) = args {
-            if is_block_start_instr(self) {
+            if instr_is_block_start(self) {
                 formatter.write(name);
                 formatter.write(" ");
                 formatter.write(&args);
@@ -29,7 +29,7 @@ impl<'src> Fmt for &Instruction<'src> {
 
 fn instr_is_valid(instruction: &Instruction) -> bool {
     match instruction {
-        Instruction::MemorySize(arg) | Instruction::MemoryGrow(arg) => is_valid_memory_arg(arg),
+        Instruction::MemorySize(arg) | Instruction::MemoryGrow(arg) => memory_arg_is_valid(arg),
         _ => true,
     }
 }
