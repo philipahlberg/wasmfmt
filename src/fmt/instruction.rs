@@ -1,6 +1,6 @@
+use super::utils::{bt_is_empty, is_block_start_instr, is_valid_memory_arg, ty_use_is_empty};
 use super::{Fmt, Formatter};
-use super::utils::{is_block_start_instr, bt_is_empty, ty_use_is_empty, is_valid_memory_arg};
-use wast::{Instruction, BlockType, BrTableIndices, MemArg};
+use wast::{BlockType, BrTableIndices, Instruction, MemArg};
 
 impl<'src> Fmt for &Instruction<'src> {
     fn fmt(&self, formatter: &mut Formatter) {

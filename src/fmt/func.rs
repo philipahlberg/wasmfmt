@@ -1,6 +1,8 @@
+use super::utils::{fmt_long_expression, func_kind_is_empty, id_is_gensym};
 use super::{Fmt, Formatter};
-use super::utils::{id_is_gensym, func_kind_is_empty, fmt_long_expression};
-use wast::{Func, TypeUse, FunctionType, ItemRef, Id, NameAnnotation, ValType, FuncKind, Local, kw};
+use wast::{
+    kw, Func, FuncKind, FunctionType, Id, ItemRef, Local, NameAnnotation, TypeUse, ValType,
+};
 
 impl<'src> Fmt for &Func<'src> {
     fn fmt(&self, formatter: &mut Formatter) {

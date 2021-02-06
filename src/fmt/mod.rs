@@ -13,7 +13,10 @@ pub(crate) mod table;
 pub(crate) mod r#type;
 pub(crate) mod utils;
 
-use wast::{Wat, parser::{ParseBuffer, parse}};
+use wast::{
+    parser::{parse, ParseBuffer},
+    Wat,
+};
 
 /// A formatter used to format individual AST nodes.
 pub struct Formatter {

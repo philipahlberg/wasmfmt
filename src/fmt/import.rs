@@ -1,6 +1,6 @@
-use super::{Fmt, Formatter};
 use super::utils::id_is_gensym;
-use wast::{Import, ItemKind, InlineImport, ItemSig};
+use super::{Fmt, Formatter};
+use wast::{Import, InlineImport, ItemKind, ItemSig};
 
 impl<'src> Fmt for &Import<'src> {
     fn fmt(&self, formatter: &mut Formatter) {

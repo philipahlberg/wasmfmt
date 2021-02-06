@@ -1,5 +1,5 @@
-use super::{Fmt, Formatter};
 use super::utils::id_is_gensym;
+use super::{Fmt, Formatter};
 use wast::{Global, GlobalKind, GlobalType};
 
 impl<'src> Fmt for &Global<'src> {

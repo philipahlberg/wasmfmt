@@ -1,6 +1,6 @@
-use super::{Fmt, Formatter};
 use super::start::Start;
-use wast::{Module, ModuleKind, ModuleField};
+use super::{Fmt, Formatter};
+use wast::{Module, ModuleField, ModuleKind};
 
 impl<'src> Fmt for Module<'src> {
     fn fmt(&self, formatter: &mut Formatter) {

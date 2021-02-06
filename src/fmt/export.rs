@@ -1,5 +1,5 @@
 use super::{Fmt, Formatter};
-use wast::{Export, ItemRef, ExportKind, InlineExport};
+use wast::{Export, ExportKind, InlineExport, ItemRef};
 
 impl<'src> Fmt for &Export<'src> {
     fn fmt(&self, formatter: &mut Formatter) {

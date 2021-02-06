@@ -1,5 +1,8 @@
 use super::Formatter;
-use wast::{Expression, Instruction, ElemPayload, Index, InlineImport, FunctionType, TypeUse, FuncKind, Id, MemoryArg, BlockType};
+use wast::{
+    BlockType, ElemPayload, Expression, FuncKind, FunctionType, Id, Index, InlineImport,
+    Instruction, MemoryArg, TypeUse,
+};
 
 pub fn expr_is_const(expression: &Expression) -> bool {
     expression.instrs.len() == 1 && instr_is_const(&expression.instrs[0])

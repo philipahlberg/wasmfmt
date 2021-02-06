@@ -1,6 +1,6 @@
-use super::{Fmt, Formatter};
 use super::utils::{id_is_gensym, index_is_default};
-use wast::{Memory, MemoryKind, DataVal, MemoryType, Data, DataKind};
+use super::{Fmt, Formatter};
+use wast::{Data, DataKind, DataVal, Memory, MemoryKind, MemoryType};
 
 impl<'src> Fmt for &Memory<'src> {
     fn fmt(&self, formatter: &mut Formatter) {

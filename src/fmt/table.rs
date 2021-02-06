@@ -1,6 +1,8 @@
+use super::utils::{elem_payload_is_empty, expr_is_const, id_is_gensym, index_is_default};
 use super::{Fmt, Formatter};
-use super::utils::{id_is_gensym, elem_payload_is_empty, index_is_default, expr_is_const};
-use wast::{Table, TableKind, TableType, Limits, RefType, Elem, ElemKind, ElemPayload, HeapType, Index};
+use wast::{
+    Elem, ElemKind, ElemPayload, HeapType, Index, Limits, RefType, Table, TableKind, TableType,
+};
 
 impl<'src> Fmt for &Table<'src> {
     fn fmt(&self, formatter: &mut Formatter) {
