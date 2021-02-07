@@ -1,7 +1,7 @@
 use super::Formatter;
 use wast::{
-    BlockType, Expression, FuncKind, FunctionType, Id, Index, InlineImport, Instruction, MemoryArg,
-    TypeUse,
+    BlockType, Expression, FunctionType, Id, Index, InlineImport, Instruction, MemoryArg,
+    TypeUse, InlineExport,
 };
 
 pub fn expr_is_const(expression: &Expression) -> bool {
@@ -20,6 +20,10 @@ pub fn inline_import_is_empty(import: &InlineImport) -> bool {
     import.field.is_none()
 }
 
+pub fn inline_export_is_empty(export: &InlineExport) -> bool {
+    export.names.is_empty()
+}
+
 pub fn func_ty_is_empty(func_ty: &FunctionType) -> bool {
     func_ty.params.is_empty() && func_ty.results.is_empty()
 }
@@ -30,16 +34,7 @@ pub fn ty_use_is_empty<'a>(ty_use: &TypeUse<'a, FunctionType<'a>>) -> bool {
             .inline
             .as_ref()
             .map(|ty| func_ty_is_empty(&ty))
-            .unwrap_or(false)
-}
-
-pub fn func_kind_is_empty(kind: &FuncKind) -> bool {
-    match kind {
-        FuncKind::Import(import) => inline_import_is_empty(import),
-        FuncKind::Inline { locals, expression } => {
-            locals.is_empty() && expression.instrs.is_empty()
-        }
-    }
+            .unwrap_or(true)
 }
 
 pub fn id_is_gensym(id: &Id) -> bool {

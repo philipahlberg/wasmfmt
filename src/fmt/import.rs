@@ -76,10 +76,10 @@ impl<'src> Fmt for &ItemSig<'src> {
 impl<'src> Fmt for &InlineImport<'src> {
     fn fmt(&self, formatter: &mut Formatter) {
         formatter.write("(import ");
-        formatter.write(&self.module);
-        if let Some(field) = &self.field {
+        formatter.fmt(self.module);
+        if let Some(field) = self.field {
             formatter.write(" ");
-            formatter.write(field);
+            formatter.fmt(field);
         };
         formatter.write(")");
     }

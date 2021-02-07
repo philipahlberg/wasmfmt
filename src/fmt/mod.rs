@@ -82,16 +82,28 @@ pub trait Fmt {
     fn fmt(&self, formatter: &mut Formatter);
 }
 
+#[derive(Clone)]
+pub struct Options {
+    pub resolve_names: bool,
+}
+
+impl Default for Options {
+    fn default() -> Self {
+        Options { resolve_names: false }
+    }
+}
+
 /// Format `.wat` source code.
 /// Uses tabs for indentation.
 /// Resolves symbolic identifiers and unfolds instruction expressions.
 /// Extracts inline exports and type definitions.
 /// Encodes all number literals in decimal notation.
-pub fn fmt(source: &str) -> String {
-    let buffer = ParseBuffer::new(source).unwrap();
-    let mut wat = parse::<Wat>(&buffer).unwrap();
-    // TODO: Handle error
-    wat.module.resolve().unwrap();
+pub fn fmt(source: &str, options: Options) -> String {
+    let buffer = ParseBuffer::new(source).expect("parse buffer");
+    let mut wat = parse::<Wat>(&buffer).expect("parse");
+    if options.resolve_names {
+        wat.module.resolve().expect("name resolution");
+    }
     let mut formatter = Formatter::new();
     wat.fmt(&mut formatter);
     formatter.into()
@@ -105,7 +117,7 @@ impl<'src> Fmt for Wat<'src> {
 
 #[cfg(test)]
 mod test {
-    use super::fmt;
+    use super::{fmt, Options};
     use assert_matches::assert_matches;
     use pretty_assertions::assert_eq;
     use wast::{
@@ -118,93 +130,199 @@ mod test {
         parser::parse::<Wat>(&buffer).map(|_| ())
     }
 
-    #[test]
-    fn data() {
-        let input = include_str!("../../tests/data/input/data.wat");
-        let expected = include_str!("../../tests/data/output/data.wat");
-        let actual = fmt(input);
-        assert_eq!(actual, expected);
-        assert_matches!(parse(&actual), Ok(..));
+    mod default {
+        use super::{assert_eq, assert_matches, fmt, parse, Options};
+
+        const OPTIONS: Options = Options {
+            resolve_names: false,
+        };
+
+        #[test]
+        fn data() {
+            let input = include_str!("../../tests/data/input/data.wat");
+            let expected = include_str!("../../tests/data/output/default/data.wat");
+            let actual = fmt(input, OPTIONS.clone());
+            assert_eq!(actual, expected);
+            assert_matches!(parse(&actual), Ok(..));
+        }
+    
+        #[test]
+        fn elem() {
+            let input = include_str!("../../tests/data/input/elem.wat");
+            let expected = include_str!("../../tests/data/output/default/elem.wat");
+            let actual = fmt(input, OPTIONS.clone());
+            assert_eq!(actual, expected);
+            assert_matches!(parse(&actual), Ok(..));
+        }
+    
+        #[test]
+        fn fac() {
+            let input = include_str!("../../tests/data/input/fac.wat");
+            let expected = include_str!("../../tests/data/output/default/fac.wat");
+            let actual = fmt(input, OPTIONS.clone());
+            assert_eq!(actual, expected);
+            assert_matches!(parse(&actual), Ok(..));
+        }
+    
+        #[test]
+        fn global() {
+            let input = include_str!("../../tests/data/input/global.wat");
+            let expected = include_str!("../../tests/data/output/default/global.wat");
+            let actual = fmt(input, OPTIONS.clone());
+            assert_eq!(actual, expected);
+            assert_matches!(parse(&actual), Ok(..));
+        }
+    
+        #[test]
+        fn i32() {
+            let input = include_str!("../../tests/data/input/i32.wat");
+            let expected = include_str!("../../tests/data/output/default/i32.wat");
+            let actual = fmt(input, OPTIONS.clone());
+            assert_eq!(actual, expected);
+            assert_matches!(parse(&actual), Ok(..));
+        }
+    
+        #[test]
+        fn imports() {
+            let input = include_str!("../../tests/data/input/imports.wat");
+            let expected = include_str!("../../tests/data/output/default/imports.wat");
+            let actual = fmt(input, OPTIONS.clone());
+            assert_eq!(actual, expected);
+            assert_matches!(parse(&actual), Ok(..));
+        }
+    
+        #[test]
+        fn memory_grow() {
+            let input = include_str!("../../tests/data/input/memory_grow.wat");
+            let expected = include_str!("../../tests/data/output/default/memory_grow.wat");
+            let actual = fmt(input, OPTIONS.clone());
+            assert_eq!(actual, expected);
+            assert_matches!(parse(&actual), Ok(..));
+        }
+    
+        #[test]
+        fn memory() {
+            let input = include_str!("../../tests/data/input/memory.wat");
+            let expected = include_str!("../../tests/data/output/default/memory.wat");
+            let actual = fmt(input, OPTIONS.clone());
+            assert_eq!(actual, expected);
+            assert_matches!(parse(&actual), Ok(..));
+        }
+    
+        #[test]
+        fn start() {
+            let input = include_str!("../../tests/data/input/start.wat");
+            let expected = include_str!("../../tests/data/output/default/start.wat");
+            let actual = fmt(input, OPTIONS.clone());
+            assert_eq!(actual, expected);
+            assert_matches!(parse(&actual), Ok(..));
+        }
+    
+        #[test]
+        fn table() {
+            let input = include_str!("../../tests/data/input/table.wat");
+            let expected = include_str!("../../tests/data/output/default/table.wat");
+            let actual = fmt(input, OPTIONS.clone());
+            assert_eq!(actual, expected);
+            assert_matches!(parse(&actual), Ok(..));
+        }
     }
 
-    #[test]
-    fn elem() {
-        let input = include_str!("../../tests/data/input/elem.wat");
-        let expected = include_str!("../../tests/data/output/elem.wat");
-        let actual = fmt(input);
-        assert_eq!(actual, expected);
-        assert_matches!(parse(&actual), Ok(..));
-    }
+    mod resolved {
+        use super::{assert_eq, assert_matches, fmt, parse, Options};
 
-    #[test]
-    fn fac() {
-        let input = include_str!("../../tests/data/input/fac.wat");
-        let expected = include_str!("../../tests/data/output/fac.wat");
-        let actual = fmt(input);
-        assert_eq!(actual, expected);
-        assert_matches!(parse(&actual), Ok(..));
-    }
+        const OPTIONS: Options = Options {
+            resolve_names: true,
+        };
 
-    #[test]
-    fn global() {
-        let input = include_str!("../../tests/data/input/global.wat");
-        let expected = include_str!("../../tests/data/output/global.wat");
-        let actual = fmt(input);
-        assert_eq!(actual, expected);
-        assert_matches!(parse(&actual), Ok(..));
-    }
-
-    #[test]
-    fn i32() {
-        let input = include_str!("../../tests/data/input/i32.wat");
-        let expected = include_str!("../../tests/data/output/i32.wat");
-        let actual = fmt(input);
-        assert_eq!(actual, expected);
-        assert_matches!(parse(&actual), Ok(..));
-    }
-
-    #[test]
-    fn imports() {
-        let input = include_str!("../../tests/data/input/imports.wat");
-        let expected = include_str!("../../tests/data/output/imports.wat");
-        let actual = fmt(input);
-        assert_eq!(actual, expected);
-        assert_matches!(parse(&actual), Ok(..));
-    }
-
-    #[test]
-    fn memory_grow() {
-        let input = include_str!("../../tests/data/input/memory_grow.wat");
-        let expected = include_str!("../../tests/data/output/memory_grow.wat");
-        let actual = fmt(input);
-        assert_eq!(actual, expected);
-        assert_matches!(parse(&actual), Ok(..));
-    }
-
-    #[test]
-    fn memory() {
-        let input = include_str!("../../tests/data/input/memory.wat");
-        let expected = include_str!("../../tests/data/output/memory.wat");
-        let actual = fmt(input);
-        assert_eq!(actual, expected);
-        assert_matches!(parse(&actual), Ok(..));
-    }
-
-    #[test]
-    fn start() {
-        let input = include_str!("../../tests/data/input/start.wat");
-        let expected = include_str!("../../tests/data/output/start.wat");
-        let actual = fmt(input);
-        assert_eq!(actual, expected);
-        assert_matches!(parse(&actual), Ok(..));
-    }
-
-    #[test]
-    fn table() {
-        let input = include_str!("../../tests/data/input/table.wat");
-        let expected = include_str!("../../tests/data/output/table.wat");
-        let actual = fmt(input);
-        assert_eq!(actual, expected);
-        assert_matches!(parse(&actual), Ok(..));
+        #[test]
+        fn data() {
+            let input = include_str!("../../tests/data/input/data.wat");
+            let expected = include_str!("../../tests/data/output/resolved/data.wat");
+            let actual = fmt(input, OPTIONS.clone());
+            assert_eq!(actual, expected);
+            assert_matches!(parse(&actual), Ok(..));
+        }
+    
+        #[test]
+        fn elem() {
+            let input = include_str!("../../tests/data/input/elem.wat");
+            let expected = include_str!("../../tests/data/output/resolved/elem.wat");
+            let actual = fmt(input, OPTIONS.clone());
+            assert_eq!(actual, expected);
+            assert_matches!(parse(&actual), Ok(..));
+        }
+    
+        #[test]
+        fn fac() {
+            let input = include_str!("../../tests/data/input/fac.wat");
+            let expected = include_str!("../../tests/data/output/resolved/fac.wat");
+            let actual = fmt(input, OPTIONS.clone());
+            assert_eq!(actual, expected);
+            assert_matches!(parse(&actual), Ok(..));
+        }
+    
+        #[test]
+        fn global() {
+            let input = include_str!("../../tests/data/input/global.wat");
+            let expected = include_str!("../../tests/data/output/resolved/global.wat");
+            let actual = fmt(input, OPTIONS.clone());
+            assert_eq!(actual, expected);
+            assert_matches!(parse(&actual), Ok(..));
+        }
+    
+        #[test]
+        fn i32() {
+            let input = include_str!("../../tests/data/input/i32.wat");
+            let expected = include_str!("../../tests/data/output/resolved/i32.wat");
+            let actual = fmt(input, OPTIONS.clone());
+            assert_eq!(actual, expected);
+            assert_matches!(parse(&actual), Ok(..));
+        }
+    
+        #[test]
+        fn imports() {
+            let input = include_str!("../../tests/data/input/imports.wat");
+            let expected = include_str!("../../tests/data/output/resolved/imports.wat");
+            let actual = fmt(input, OPTIONS.clone());
+            assert_eq!(actual, expected);
+            assert_matches!(parse(&actual), Ok(..));
+        }
+    
+        #[test]
+        fn memory_grow() {
+            let input = include_str!("../../tests/data/input/memory_grow.wat");
+            let expected = include_str!("../../tests/data/output/resolved/memory_grow.wat");
+            let actual = fmt(input, OPTIONS.clone());
+            assert_eq!(actual, expected);
+            assert_matches!(parse(&actual), Ok(..));
+        }
+    
+        #[test]
+        fn memory() {
+            let input = include_str!("../../tests/data/input/memory.wat");
+            let expected = include_str!("../../tests/data/output/resolved/memory.wat");
+            let actual = fmt(input, OPTIONS.clone());
+            assert_eq!(actual, expected);
+            assert_matches!(parse(&actual), Ok(..));
+        }
+    
+        #[test]
+        fn start() {
+            let input = include_str!("../../tests/data/input/start.wat");
+            let expected = include_str!("../../tests/data/output/resolved/start.wat");
+            let actual = fmt(input, OPTIONS.clone());
+            assert_eq!(actual, expected);
+            assert_matches!(parse(&actual), Ok(..));
+        }
+    
+        #[test]
+        fn table() {
+            let input = include_str!("../../tests/data/input/table.wat");
+            let expected = include_str!("../../tests/data/output/resolved/table.wat");
+            let actual = fmt(input, OPTIONS.clone());
+            assert_eq!(actual, expected);
+            assert_matches!(parse(&actual), Ok(..));
+        }
     }
 }

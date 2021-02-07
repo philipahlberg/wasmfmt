@@ -4,11 +4,11 @@ use std::io::{self, Read, Write};
 use std::path::PathBuf;
 use std::str::FromStr;
 use structopt::StructOpt;
-use wasmfmt::{fmt, Diff, Error};
+use wasmfmt::{fmt, Diff, Error, Options};
 
 /// Format WebAssembly Text Format code according to a set of style rules.
 #[derive(StructOpt)]
-pub struct Options {
+pub struct Cli {
     /// Specify the operation mode.
     ///
     /// In `fix` mode, the formatted code
@@ -21,6 +21,10 @@ pub struct Options {
     /// found, the process exits with code 0.
     #[structopt(short, long)]
     mode: Option<Mode>,
+
+    /// Specify if name resolution should be performed.
+    #[structopt(short, long)]
+    resolve_names: bool,
 
     /// Specify the output file path.
     ///
@@ -72,9 +76,9 @@ impl Default for Mode {
 }
 
 fn main() -> Result<(), Error> {
-    let options = Options::from_args();
+    let arguments = Cli::from_args();
 
-    let source = match options.file {
+    let source = match arguments.file {
         Some(file) => fs::read_to_string(file.as_path())?,
         None => {
             let mut buffer = String::new();
@@ -83,11 +87,13 @@ fn main() -> Result<(), Error> {
         }
     };
 
-    let formatted = fmt(&source);
+    let formatted = fmt(&source, Options {
+        resolve_names: arguments.resolve_names,
+    });
 
-    match options.mode.unwrap_or_default() {
+    match arguments.mode.unwrap_or_default() {
         Mode::Fix => {
-            match options.output {
+            match arguments.output {
                 Some(path) => {
                     fs::write(path, formatted)?;
                 }

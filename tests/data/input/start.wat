@@ -1,4 +1,4 @@
 (module
-	(func $main (i32.const 1))
+	(func $main (result i32) (i32.const 1))
 	(start $main)
 )

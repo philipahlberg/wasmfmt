@@ -22,7 +22,7 @@
 		i32.store
 	)
 	(export "grow" (func 4))
-	(func (type 2) (param i32) (result i32)
+	(func (type 2) (param $sz i32) (result i32)
 		(local.get 0)
 		memory.grow
 	)
