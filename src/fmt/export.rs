@@ -67,11 +67,17 @@ impl<'src> Fmt for &ExportKind {
 
 impl<'src> Fmt for &InlineExport<'src> {
     fn fmt(&self, formatter: &mut Formatter) {
-        formatter.write("(export");
-        for name in &self.names {
-            formatter.write(" ");
-            formatter.write(name);
+        let mut names = self.names.iter();
+        if let Some(name) = names.next() {
+            formatter.write("(export ");
+            formatter.fmt(*name);
+            formatter.write(")");
         }
-        formatter.write(")");
+        for name in names {
+            formatter.write(" ");
+            formatter.write("(export ");
+            formatter.fmt(*name);
+            formatter.write(")");
+        }
     }
 }

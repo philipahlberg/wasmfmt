@@ -72,7 +72,7 @@ fn parse(input: &str) -> Result<(), WastError> {
 
 #[test]
 fn fix_mode_works() {
-    let expected = include_str!("data/output/i32.wat");
+    let expected = include_str!("data/output/default/i32.wat");
     let actual = wasmfmt(&["tests/data/input/i32.wat"]).expect("failed to format i32.wat");
     assert_eq!(actual, expected);
     assert_matches!(parse(&actual), Ok(..));
@@ -81,7 +81,7 @@ fn fix_mode_works() {
 #[test]
 fn check_mode_works() {
     let source = include_str!("data/input/i32.wat");
-    let formatted = include_str!("data/output/i32.wat");
+    let formatted = include_str!("data/output/default/i32.wat");
     let result =
         wasmfmt(&["tests/data/input/i32.wat", "--mode", "check"]).expect("failed to check i32.wat");
     assert!(result.contains("Difference found."));
@@ -93,7 +93,7 @@ fn check_mode_works() {
 
 #[test]
 fn writes_to_output_file() -> Result<(), Error> {
-    let formatted = include_str!("data/output/i32.wat");
+    let formatted = include_str!("data/output/default/i32.wat");
     let tmp = env::temp_dir();
     let out = tmp.join("out.wat");
     let result = wasmfmt(&[
@@ -112,7 +112,7 @@ fn writes_to_output_file() -> Result<(), Error> {
 #[test]
 fn reads_from_stdin_if_no_file_is_provided() -> Result<(), Error> {
     let source = include_str!("data/input/i32.wat");
-    let expected = include_str!("data/output/i32.wat");
+    let expected = include_str!("data/output/default/i32.wat");
     let actual = wasmfmt_stdin(source).expect("failed to format i32.wat");
     assert_eq!(actual, expected);
     assert_matches!(parse(&actual), Ok(..));

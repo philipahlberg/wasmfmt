@@ -16,7 +16,7 @@
 		end
 	)
 	(export "fac-rec-named" (func 1))
-	(func $fac-rec-named (type 0) (param i64) (result i64)
+	(func $fac-rec-named (type 0) (param $n i64) (result i64)
 		(local.get 0)
 		(i64.const 0)
 		i64.eq
@@ -61,8 +61,9 @@
 		(local.get 2)
 	)
 	(export "fac-iter-named" (func 3))
-	(func (type 0) (param i64) (result i64)
-		(local i64 i64)
+	(func (type 0) (param $n i64) (result i64)
+		(local $i i64)
+		(local $res i64)
 		(local.get 0)
 		(local.set 1)
 		(i64.const 1)

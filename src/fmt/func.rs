@@ -1,4 +1,7 @@
-use super::utils::{fmt_long_expression, func_kind_is_empty, id_is_gensym};
+use super::utils::{
+    fmt_long_expression, id_is_gensym, inline_export_is_empty, inline_import_is_empty,
+    ty_use_is_empty,
+};
 use super::{Fmt, Formatter};
 use wast::{
     kw, Func, FuncKind, FunctionType, Id, ItemRef, Local, NameAnnotation, TypeUse, ValType,
@@ -7,20 +10,36 @@ use wast::{
 impl<'src> Fmt for &Func<'src> {
     fn fmt(&self, formatter: &mut Formatter) {
         formatter.start_line();
-        formatter.write("(func ");
+        formatter.write("(func");
         if let Some(id) = &self.id {
             if !id_is_gensym(id) {
-                formatter.fmt(id);
                 formatter.write(" ");
+                formatter.fmt(id);
             }
         }
-        formatter.fmt(&self.ty);
-        if !func_kind_is_empty(&self.kind) {
-            formatter.end_line();
-            formatter.indent();
-            formatter.fmt(&self.kind);
-            formatter.deindent();
-            formatter.start_line();
+        if !inline_export_is_empty(&self.exports) {
+            formatter.write(" ");
+            formatter.fmt(&self.exports);
+        }
+        if let FuncKind::Import(inline_import) = &self.kind {
+            if !inline_import_is_empty(inline_import) {
+                formatter.write(" ");
+                formatter.fmt(inline_import);
+            }
+        }
+        if !ty_use_is_empty(&self.ty) {
+            formatter.write(" ");
+            formatter.fmt(&self.ty);
+        }
+        if let FuncKind::Inline { locals, expression } = &self.kind {
+            if !locals.is_empty() || !expression.instrs.is_empty() {
+                formatter.end_line();
+                formatter.indent();
+                formatter.fmt(locals);
+                fmt_long_expression(expression, formatter);
+                formatter.deindent();
+                formatter.start_line();
+            }
         }
         formatter.write(")");
         formatter.end_line();
@@ -64,18 +83,47 @@ type Param<'src> = (
     ValType<'src>,
 );
 
-// TODO: ID, Name
 impl<'src> Fmt for &[Param<'src>] {
     fn fmt(&self, formatter: &mut Formatter) {
         if !self.is_empty() {
-            formatter.write("(param");
-            for param in self.iter() {
-                formatter.write(" ");
-                formatter.fmt(&param.2);
+            if params_can_be_abbreviated(self) {
+                formatter.write("(param");
+                for param in self.iter() {
+                    formatter.write(" ");
+                    formatter.fmt(&param.2);
+                }
+                formatter.write(")");
+            } else {
+                let mut params = self.iter();
+                if let Some((id, _, ty)) = params.next() {
+                    formatter.write("(param ");
+                    if let Some(id) = id {
+                        formatter.fmt(id);
+                        formatter.write(" ");
+                    }
+                    formatter.fmt(ty);
+                    formatter.write(")");
+                }
+                for (id, _, ty) in params {
+                    formatter.write(" (param ");
+                    if let Some(id) = id {
+                        formatter.fmt(id);
+                        formatter.write(" ");
+                    }
+                    formatter.fmt(ty);
+                    formatter.write(")");
+                }
             }
-            formatter.write(")");
         }
     }
+}
+
+fn params_can_be_abbreviated(params: &[Param]) -> bool {
+    params.iter().all(param_is_anonymous)
+}
+
+fn param_is_anonymous(param: &Param) -> bool {
+    param.0.is_none()
 }
 
 impl<'src> Fmt for &[ValType<'src>] {
@@ -105,29 +153,39 @@ impl<'src> Fmt for &ValType<'src> {
     }
 }
 
-impl<'src> Fmt for &FuncKind<'src> {
-    fn fmt(&self, formatter: &mut Formatter) {
-        match self {
-            FuncKind::Import(import) => formatter.fmt(import),
-            FuncKind::Inline { locals, expression } => {
-                formatter.fmt(locals);
-                fmt_long_expression(expression, formatter);
-            }
-        };
-    }
-}
-
 impl<'src> Fmt for &Vec<Local<'src>> {
     fn fmt(&self, formatter: &mut Formatter) {
         if !self.is_empty() {
-            formatter.start_line();
-            formatter.write("(local");
-            for local in self.iter() {
-                formatter.write(" ");
-                formatter.fmt(&local.ty);
+            if locals_can_be_abbreviated(self) {
+                formatter.start_line();
+                formatter.write("(local");
+                for local in self.iter() {
+                    formatter.write(" ");
+                    formatter.fmt(&local.ty);
+                }
+                formatter.write(")");
+                formatter.end_line();
+            } else {
+                for local in self.iter() {
+                    formatter.start_line();
+                    formatter.write("(local ");
+                    if let Some(id) = &local.id {
+                        formatter.fmt(id);
+                        formatter.write(" ");
+                    }
+                    formatter.fmt(&local.ty);
+                    formatter.write(")");
+                    formatter.end_line();
+                }
             }
-            formatter.write(")");
-            formatter.end_line();
         }
     }
+}
+
+fn locals_can_be_abbreviated(locals: &[Local]) -> bool {
+    locals.iter().all(local_is_anonymous)
+}
+
+fn local_is_anonymous(local: &Local) -> bool {
+    local.id.is_none()
 }
