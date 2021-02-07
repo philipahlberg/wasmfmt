@@ -89,7 +89,9 @@ pub struct Options {
 
 impl Default for Options {
     fn default() -> Self {
-        Options { resolve_names: false }
+        Options {
+            resolve_names: false,
+        }
     }
 }
 
@@ -145,7 +147,7 @@ mod test {
             assert_eq!(actual, expected);
             assert_matches!(parse(&actual), Ok(..));
         }
-    
+
         #[test]
         fn elem() {
             let input = include_str!("../../tests/data/input/elem.wat");
@@ -154,7 +156,7 @@ mod test {
             assert_eq!(actual, expected);
             assert_matches!(parse(&actual), Ok(..));
         }
-    
+
         #[test]
         fn fac() {
             let input = include_str!("../../tests/data/input/fac.wat");
@@ -163,7 +165,7 @@ mod test {
             assert_eq!(actual, expected);
             assert_matches!(parse(&actual), Ok(..));
         }
-    
+
         #[test]
         fn global() {
             let input = include_str!("../../tests/data/input/global.wat");
@@ -172,7 +174,7 @@ mod test {
             assert_eq!(actual, expected);
             assert_matches!(parse(&actual), Ok(..));
         }
-    
+
         #[test]
         fn i32() {
             let input = include_str!("../../tests/data/input/i32.wat");
@@ -181,7 +183,7 @@ mod test {
             assert_eq!(actual, expected);
             assert_matches!(parse(&actual), Ok(..));
         }
-    
+
         #[test]
         fn imports() {
             let input = include_str!("../../tests/data/input/imports.wat");
@@ -190,7 +192,7 @@ mod test {
             assert_eq!(actual, expected);
             assert_matches!(parse(&actual), Ok(..));
         }
-    
+
         #[test]
         fn memory_grow() {
             let input = include_str!("../../tests/data/input/memory_grow.wat");
@@ -199,7 +201,7 @@ mod test {
             assert_eq!(actual, expected);
             assert_matches!(parse(&actual), Ok(..));
         }
-    
+
         #[test]
         fn memory() {
             let input = include_str!("../../tests/data/input/memory.wat");
@@ -208,7 +210,7 @@ mod test {
             assert_eq!(actual, expected);
             assert_matches!(parse(&actual), Ok(..));
         }
-    
+
         #[test]
         fn start() {
             let input = include_str!("../../tests/data/input/start.wat");
@@ -217,7 +219,7 @@ mod test {
             assert_eq!(actual, expected);
             assert_matches!(parse(&actual), Ok(..));
         }
-    
+
         #[test]
         fn table() {
             let input = include_str!("../../tests/data/input/table.wat");
@@ -243,7 +245,7 @@ mod test {
             assert_eq!(actual, expected);
             assert_matches!(parse(&actual), Ok(..));
         }
-    
+
         #[test]
         fn elem() {
             let input = include_str!("../../tests/data/input/elem.wat");
@@ -252,7 +254,7 @@ mod test {
             assert_eq!(actual, expected);
             assert_matches!(parse(&actual), Ok(..));
         }
-    
+
         #[test]
         fn fac() {
             let input = include_str!("../../tests/data/input/fac.wat");
@@ -261,7 +263,7 @@ mod test {
             assert_eq!(actual, expected);
             assert_matches!(parse(&actual), Ok(..));
         }
-    
+
         #[test]
         fn global() {
             let input = include_str!("../../tests/data/input/global.wat");
@@ -270,7 +272,7 @@ mod test {
             assert_eq!(actual, expected);
             assert_matches!(parse(&actual), Ok(..));
         }
-    
+
         #[test]
         fn i32() {
             let input = include_str!("../../tests/data/input/i32.wat");
@@ -279,7 +281,7 @@ mod test {
             assert_eq!(actual, expected);
             assert_matches!(parse(&actual), Ok(..));
         }
-    
+
         #[test]
         fn imports() {
             let input = include_str!("../../tests/data/input/imports.wat");
@@ -288,7 +290,7 @@ mod test {
             assert_eq!(actual, expected);
             assert_matches!(parse(&actual), Ok(..));
         }
-    
+
         #[test]
         fn memory_grow() {
             let input = include_str!("../../tests/data/input/memory_grow.wat");
@@ -297,7 +299,7 @@ mod test {
             assert_eq!(actual, expected);
             assert_matches!(parse(&actual), Ok(..));
         }
-    
+
         #[test]
         fn memory() {
             let input = include_str!("../../tests/data/input/memory.wat");
@@ -306,7 +308,7 @@ mod test {
             assert_eq!(actual, expected);
             assert_matches!(parse(&actual), Ok(..));
         }
-    
+
         #[test]
         fn start() {
             let input = include_str!("../../tests/data/input/start.wat");
@@ -315,7 +317,7 @@ mod test {
             assert_eq!(actual, expected);
             assert_matches!(parse(&actual), Ok(..));
         }
-    
+
         #[test]
         fn table() {
             let input = include_str!("../../tests/data/input/table.wat");

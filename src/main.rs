@@ -87,9 +87,12 @@ fn main() -> Result<(), Error> {
         }
     };
 
-    let formatted = fmt(&source, Options {
-        resolve_names: arguments.resolve_names,
-    });
+    let formatted = fmt(
+        &source,
+        Options {
+            resolve_names: arguments.resolve_names,
+        },
+    );
 
     match arguments.mode.unwrap_or_default() {
         Mode::Fix => {

@@ -1,7 +1,7 @@
 use super::Formatter;
 use wast::{
-    BlockType, Expression, FunctionType, Id, Index, InlineImport, Instruction, MemoryArg,
-    TypeUse, InlineExport,
+    BlockType, Expression, FunctionType, Id, Index, InlineExport, InlineImport, Instruction,
+    MemoryArg, TypeUse,
 };
 
 pub fn expr_is_const(expression: &Expression) -> bool {

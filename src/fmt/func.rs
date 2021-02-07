@@ -1,4 +1,7 @@
-use super::utils::{fmt_long_expression, id_is_gensym, ty_use_is_empty, inline_export_is_empty, inline_import_is_empty};
+use super::utils::{
+    fmt_long_expression, id_is_gensym, inline_export_is_empty, inline_import_is_empty,
+    ty_use_is_empty,
+};
 use super::{Fmt, Formatter};
 use wast::{
     kw, Func, FuncKind, FunctionType, Id, ItemRef, Local, NameAnnotation, TypeUse, ValType,
