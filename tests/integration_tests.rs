@@ -43,7 +43,8 @@ fn fix_works() -> Result<(), Error> {
     let original = include_str!("data/input/i32.wat");
     let expected = include_str!("data/output/default/i32.wat");
 
-    let temp_path = env::temp_dir().join("out.wat")
+    let temp_path = env::temp_dir()
+        .join("out.wat")
         .into_os_string()
         .into_string()
         .unwrap();
@@ -61,8 +62,7 @@ fn fix_works() -> Result<(), Error> {
 fn check_works() {
     let source = include_str!("data/input/i32.wat");
     let formatted = include_str!("data/output/default/i32.wat");
-    let result =
-        wasmfmt(&["check", "tests/data/input/i32.wat"]).expect("failed to check i32.wat");
+    let result = wasmfmt(&["check", "tests/data/input/i32.wat"]).expect("failed to check i32.wat");
     assert!(result.contains("Difference found."));
     assert!(result.contains("Source:"));
     assert!(result.contains(source));
@@ -73,7 +73,6 @@ fn check_works() {
 #[test]
 fn print_works() {
     let formatted = include_str!("data/output/default/i32.wat");
-    let result =
-        wasmfmt(&["print", "tests/data/input/i32.wat"]).expect("failed to print i32.wat");
+    let result = wasmfmt(&["print", "tests/data/input/i32.wat"]).expect("failed to print i32.wat");
     assert_eq!(result, formatted);
 }
