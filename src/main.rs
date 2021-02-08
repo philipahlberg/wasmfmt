@@ -1,117 +1,80 @@
-use std::fmt::{Display, Error as FormatError, Formatter};
 use std::fs;
-use std::io::{self, Read, Write};
+use std::io::{self, Write as _};
 use std::path::PathBuf;
-use std::str::FromStr;
 use structopt::StructOpt;
 use wasmfmt::{fmt, Diff, Error, Options};
 
-/// Format WebAssembly Text Format code according to a set of style rules.
+/// Format WebAssembly code.
 #[derive(StructOpt)]
-pub struct Cli {
-    /// Specify the operation mode.
-    ///
-    /// In `fix` mode, the formatted code
-    /// is written to the output destination.
-    /// In `check` mode, the formatted code
-    /// is compared to the source code. If
-    /// any difference is found, an error is
-    /// written to `stdout`, and the process
-    /// exits with code 1. If no difference is
-    /// found, the process exits with code 0.
-    #[structopt(short, long)]
-    mode: Option<Mode>,
+enum Cli {
+    /// Format the input file in-place.
+    Fix(Input),
+    /// Check if the input file is formatted correctly.
+    Check(Input),
+    /// Print the formatted code to `stdout`.
+    Print(Input),
+}
 
-    /// Specify if name resolution should be performed.
+#[derive(StructOpt)]
+struct Input {
+    /// The input file path.
+    #[structopt(parse(from_os_str))]
+    file: PathBuf,
+
+    #[structopt(flatten)]
+    flags: Flags,
+}
+
+#[derive(StructOpt, Debug)]
+struct Flags {
+    /// Perform name resolution.
     #[structopt(short, long)]
     resolve_names: bool,
-
-    /// Specify the output file path.
-    ///
-    /// The formatted code will be written to this file.
-    /// If no path is provided, the formatted code
-    /// is written directly to `stdout`.
-    #[structopt(short, long)]
-    output: Option<PathBuf>,
-
-    /// Specify the input file path.
-    ///
-    /// The source code will be read from this file.
-    /// If no path is provided, source code
-    /// will be read directly from `stdin`.
-    #[structopt(parse(from_os_str))]
-    file: Option<PathBuf>,
 }
 
-enum Mode {
+enum Command {
     Fix,
     Check,
+    Print,
 }
 
-impl Display for Mode {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), FormatError> {
-        match self {
-            Mode::Fix => f.write_str("fix"),
-            Mode::Check => f.write_str("check"),
+impl From<Cli> for (Command, Input) {
+    fn from(cli: Cli) -> (Command, Input) {
+        match cli {
+            Cli::Print(input) => (Command::Print, input),
+            Cli::Fix(input) => (Command::Fix, input),
+            Cli::Check(input) => (Command::Check, input),
         }
-    }
-}
-
-impl FromStr for Mode {
-    type Err = String;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "fix" => Ok(Mode::Fix),
-            "check" => Ok(Mode::Check),
-            _ => Err(format!("unknown --mode value: {}", s)),
-        }
-    }
-}
-
-impl Default for Mode {
-    fn default() -> Self {
-        Mode::Fix
     }
 }
 
 fn main() -> Result<(), Error> {
-    let arguments = Cli::from_args();
+    let (command, input) = Cli::from_args().into();
 
-    let source = match arguments.file {
-        Some(file) => fs::read_to_string(file.as_path())?,
-        None => {
-            let mut buffer = String::new();
-            io::stdin().read_to_string(&mut buffer)?;
-            buffer
-        }
-    };
+    let source = fs::read_to_string(input.file.as_path())?;
 
     let formatted = fmt(
         &source,
         Options {
-            resolve_names: arguments.resolve_names,
+            resolve_names: input.flags.resolve_names,
         },
     );
 
-    match arguments.mode.unwrap_or_default() {
-        Mode::Fix => {
-            match arguments.output {
-                Some(path) => {
-                    fs::write(path, formatted)?;
-                }
-                None => {
-                    io::stdout().write_all(formatted.as_bytes())?;
-                }
-            };
+    match command {
+        Command::Fix => {
+            fs::write(input.file, formatted)?;
             Ok(())
         }
-        Mode::Check => {
+        Command::Check => {
             if let Some(diff) = Diff::from(&source, &formatted) {
                 io::stdout().write_fmt(format_args!("{}", diff))?;
                 io::stdout().flush().unwrap();
                 std::process::exit(1);
             };
+            Ok(())
+        }
+        Command::Print => {
+            io::stdout().write_all(formatted.as_bytes())?;
             Ok(())
         }
     }
