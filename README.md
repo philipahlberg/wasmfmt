@@ -1,48 +1,55 @@
-# wasmfmt
+# wasmfmt [![crate][cratesio-badge]][cratesio-crate]
 
-A tool for formatting your `.wat` code according to style rules.
+A tool for formatting `.wat` code.
 
-It can be used as either a command-line tool or as a library.
+Available as a command-line tool and a library.
 
-For more information on how to use the library, see the [API docs](https://docs.rs/wasmfmt).
-
+For more information on how to use the library, see the [API docs][docsrs-crate].
 
 ## Install
 
-To install the tool, use [Cargo](https://github.com/rust-lang/cargo).
+To install the tool, first install [Cargo][cargo].
 
-To install from [crates.io](https://crates.io/):
+Then, to install from [crates.io][cratesio]:
 
 ```sh
 cargo install wasmfmt
 ```
 
-To install from source:
+Alternatively, to install from source:
 
 ```sh
-cargo install --path .
+cargo install --path /path/to/wasmfmt
 ```
 
-## Usage
+## Use
 
 To format a file in-place, use `wasmfmt fix`:
 
 ```sh
-wasmfmt fix examples/fac.wat
+wasmfmt fix /path/to/file.wat
 ```
 
-To determine if a file is already formatted, use `wasmfmt check`:
+To determine if a file is formatted properly, use `wasmfmt check`:
 
 ```sh
-wasmfmt check examples/fact.wat
+wasmfmt check /path/to/file.wat
 ```
 
-This is useful e. g. when running in a CI environment as part of an automated style check.
+To simply see the formatted version of a file, use `wasmfmt print`:
 
+```sh
+wasmfmt print /path/to/file.wat
+```
+
+For more information on how to use the tool, use `wasmfmt help`:
+```sh
+wasmfmt help
+```
 
 ## Build
 
-To build the binary, use [Cargo](https://github.com/rust-lang/cargo):
+To build the binary, use [Cargo][cargo]:
 
 ```sh
 cargo build --release
@@ -53,7 +60,7 @@ The generated binary is located in `target/release/wasmfmt`.
 
 ## Test
 
-To run the tests, use [Cargo](https://github.com/rust-lang/cargo):
+To run the tests, use [Cargo][cargo]:
 
 ```sh
 cargo test
@@ -62,3 +69,9 @@ cargo test
 ## License
 
 `wasmfmt` is distributed under the terms of the MIT license. See [LICENSE](LICENSE) for details.
+
+[docsrs-crate]: [https://docs.rs/wasmfmt]
+[cratesio]: [https://crates.io]
+[cratesio-crate]: [https://crates.io/crates/wasmfmt]
+[cratesio-badge]: [https://img.shields.io/crates/v/wasmfmt?style=flat-square]
+[cargo]: [https://github.com/rust-lang/cargo]
