@@ -1,4 +1,4 @@
-name: publish
+name: cargo publish
 on:
   release:
     types: [created]
