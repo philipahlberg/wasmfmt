@@ -27,19 +27,19 @@ cargo install --path /path/to/wasmfmt
 To format a file in-place, use `wasmfmt fix`:
 
 ```sh
-wasmfmt fix path/to/file.wat
+wasmfmt fix /path/to/file.wat
 ```
 
 To determine if a file is formatted properly, use `wasmfmt check`:
 
 ```sh
-wasmfmt check path/to/file.wat
+wasmfmt check /path/to/file.wat
 ```
 
 To simply see the formatted version of a file, use `wasmfmt print`:
 
 ```sh
-wasmfmt print path/to/file.wat
+wasmfmt print /path/to/file.wat
 ```
 
 ## Build
