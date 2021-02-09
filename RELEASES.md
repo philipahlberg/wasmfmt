@@ -1,3 +1,12 @@
+## Version 0.3.0 - *Not yet released*
+=============================
+
+### Added
+
+- [Binaries for multiple platforms are now distributed with each release][78]
+
+[78]: https://github.com/philipahlberg/wasmfmt/pull/78
+
 ## Version 0.2.3 - 2022-08-19
 =============================
 
@@ -20,6 +29,7 @@
 
 ## Version 0.2.1 - 2021-02-09
 =============================
+
 ### Fixed
 
 - [Updated README.md to reflect API changes][76]
