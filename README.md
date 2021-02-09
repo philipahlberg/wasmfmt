@@ -1,8 +1,8 @@
 # wasmfmt [![crate][cratesio-badge]][cratesio-crate]
 
-A tool for formatting your `.wat` code according to style rules.
+A tool for formatting `.wat` code.
 
-It can be used as either a command-line tool or as a library.
+Available as a command-line tool and a library.
 
 For more information on how to use the library, see the [API docs][docsrs-crate].
 
