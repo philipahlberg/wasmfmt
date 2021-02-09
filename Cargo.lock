@@ -742,7 +742,7 @@ checksum = "dd4945e4943ae02d15c13962b38a5b1e81eadd4b71214eee75af64a4d6a4fd64"
 
 [[package]]
 name = "wasmfmt"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "assert_matches",
  "criterion",
