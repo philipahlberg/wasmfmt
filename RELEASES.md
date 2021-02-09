@@ -1,7 +1,32 @@
-Version 0.1.1 - 2021-02-02
+## Version 0.2.1 - 2021-02-09
+
+### Fixed
+
+- [Updated README.md to reflect API changes][76]
+
+[76]: https://github.com/philipahlberg/wasmfmt/pull/76
+
+## Version 0.2.0 - 2021-02-08
 ==========================
 
-Fixed
+### Added
+
+- [Added the `--resolve-names` flag][73]
+- [Added the `fix`, `check` and `print` subcommands][74]
+
+### Changed
+
+- [Updated `wast` to `v32.0`][71]
+
+
+[71]: https://github.com/philipahlberg/wasmfmt/pull/71
+[73]: https://github.com/philipahlberg/wasmfmt/pull/73
+[74]: https://github.com/philipahlberg/wasmfmt/pull/74
+
+## Version 0.1.1 - 2021-02-02
+==========================
+
+### Fixed
 
 - [Block instructions are no longer parenthesised][68]
 - [Generated identifiers are no longer rendered][70]
@@ -10,7 +35,7 @@ Fixed
 [68]: https://github.com/philipahlberg/wasmfmt/pull/68
 [70]: https://github.com/philipahlberg/wasmfmt/pull/70
 
-Version 0.1.0 - 2021-02-01
+## Version 0.1.0 - 2021-02-01
 ==========================
 
 This is the initial release of the `wasmfmt` tool and accompanying library.
