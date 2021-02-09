@@ -42,6 +42,11 @@ To simply see the formatted version of a file, use `wasmfmt print`:
 wasmfmt print /path/to/file.wat
 ```
 
+For more information on how to use the tool, use `wasmfmt help`:
+```sh
+wasmfmt help
+```
+
 ## Build
 
 To build the binary, use [Cargo][cargo]:
