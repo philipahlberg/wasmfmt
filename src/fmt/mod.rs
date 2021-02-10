@@ -248,6 +248,15 @@ mod test {
         }
 
         #[test]
+        fn i64() {
+            let input = include_str!("../../tests/data/input/i64.wat");
+            let expected = include_str!("../../tests/data/output/default/i64.wat");
+            let actual = fmt(input, OPTIONS.clone());
+            assert_eq!(actual, expected);
+            assert_matches!(parse(&actual), Ok(..));
+        }
+
+        #[test]
         fn imports() {
             let input = include_str!("../../tests/data/input/imports.wat");
             let expected = include_str!("../../tests/data/output/default/imports.wat");
@@ -403,6 +412,15 @@ mod test {
         fn i32() {
             let input = include_str!("../../tests/data/input/i32.wat");
             let expected = include_str!("../../tests/data/output/resolved/i32.wat");
+            let actual = fmt(input, OPTIONS.clone());
+            assert_eq!(actual, expected);
+            assert_matches!(parse(&actual), Ok(..));
+        }
+
+        #[test]
+        fn i64() {
+            let input = include_str!("../../tests/data/input/i64.wat");
+            let expected = include_str!("../../tests/data/output/resolved/i64.wat");
             let actual = fmt(input, OPTIONS.clone());
             assert_eq!(actual, expected);
             assert_matches!(parse(&actual), Ok(..));
