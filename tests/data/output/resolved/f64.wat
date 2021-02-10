@@ -1,0 +1,65 @@
+(module
+	(export "add" (func 0))
+	(func (type 0) (param $x f64) (param $y f64) (result f64)
+		(local.get 0)
+		(local.get 1)
+		f64.add
+	)
+	(export "sub" (func 1))
+	(func (type 0) (param $x f64) (param $y f64) (result f64)
+		(local.get 0)
+		(local.get 1)
+		f64.sub
+	)
+	(export "mul" (func 2))
+	(func (type 0) (param $x f64) (param $y f64) (result f64)
+		(local.get 0)
+		(local.get 1)
+		f64.mul
+	)
+	(export "div" (func 3))
+	(func (type 0) (param $x f64) (param $y f64) (result f64)
+		(local.get 0)
+		(local.get 1)
+		f64.div
+	)
+	(export "sqrt" (func 4))
+	(func (type 1) (param $x f64) (result f64)
+		(local.get 0)
+		f64.sqrt
+	)
+	(export "min" (func 5))
+	(func (type 0) (param $x f64) (param $y f64) (result f64)
+		(local.get 0)
+		(local.get 1)
+		f64.min
+	)
+	(export "max" (func 6))
+	(func (type 0) (param $x f64) (param $y f64) (result f64)
+		(local.get 0)
+		(local.get 1)
+		f64.max
+	)
+	(export "ceil" (func 7))
+	(func (type 1) (param $x f64) (result f64)
+		(local.get 0)
+		f64.ceil
+	)
+	(export "floor" (func 8))
+	(func (type 1) (param $x f64) (result f64)
+		(local.get 0)
+		f64.floor
+	)
+	(export "trunc" (func 9))
+	(func (type 1) (param $x f64) (result f64)
+		(local.get 0)
+		f64.trunc
+	)
+	(export "nearest" (func 10))
+	(func (type 1) (param $x f64) (result f64)
+		(local.get 0)
+		f64.nearest
+	)
+	(type (func (param f64 f64) (result f64)))
+	(type (func (param f64) (result f64)))
+)
