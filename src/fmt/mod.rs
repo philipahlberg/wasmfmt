@@ -158,6 +158,15 @@ mod test {
         }
 
         #[test]
+        fn exports() {
+            let input = include_str!("../../tests/data/input/exports.wat");
+            let expected = include_str!("../../tests/data/output/default/exports.wat");
+            let actual = fmt(input, OPTIONS.clone());
+            assert_eq!(actual, expected);
+            assert_matches!(parse(&actual), Ok(..));
+        }
+
+        #[test]
         fn fac() {
             let input = include_str!("../../tests/data/input/fac.wat");
             let expected = include_str!("../../tests/data/output/default/fac.wat");
@@ -250,6 +259,15 @@ mod test {
         fn elem() {
             let input = include_str!("../../tests/data/input/elem.wat");
             let expected = include_str!("../../tests/data/output/resolved/elem.wat");
+            let actual = fmt(input, OPTIONS.clone());
+            assert_eq!(actual, expected);
+            assert_matches!(parse(&actual), Ok(..));
+        }
+
+        #[test]
+        fn exports() {
+            let input = include_str!("../../tests/data/input/exports.wat");
+            let expected = include_str!("../../tests/data/output/resolved/exports.wat");
             let actual = fmt(input, OPTIONS.clone());
             assert_eq!(actual, expected);
             assert_matches!(parse(&actual), Ok(..));
