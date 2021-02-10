@@ -194,6 +194,33 @@ mod test {
         }
 
         #[test]
+        fn f64_bitwise() {
+            let input = include_str!("../../tests/data/input/f64_bitwise.wat");
+            let expected = include_str!("../../tests/data/output/default/f64_bitwise.wat");
+            let actual = fmt(input, OPTIONS.clone());
+            assert_eq!(actual, expected);
+            assert_matches!(parse(&actual), Ok(..));
+        }
+
+        #[test]
+        fn f64_cmp() {
+            let input = include_str!("../../tests/data/input/f64_cmp.wat");
+            let expected = include_str!("../../tests/data/output/default/f64_cmp.wat");
+            let actual = fmt(input, OPTIONS.clone());
+            assert_eq!(actual, expected);
+            assert_matches!(parse(&actual), Ok(..));
+        }
+
+        #[test]
+        fn f64() {
+            let input = include_str!("../../tests/data/input/f64.wat");
+            let expected = include_str!("../../tests/data/output/default/f64.wat");
+            let actual = fmt(input, OPTIONS.clone());
+            assert_eq!(actual, expected);
+            assert_matches!(parse(&actual), Ok(..));
+        }
+
+        #[test]
         fn fac() {
             let input = include_str!("../../tests/data/input/fac.wat");
             let expected = include_str!("../../tests/data/output/default/fac.wat");
@@ -322,6 +349,33 @@ mod test {
         fn f32() {
             let input = include_str!("../../tests/data/input/f32.wat");
             let expected = include_str!("../../tests/data/output/resolved/f32.wat");
+            let actual = fmt(input, OPTIONS.clone());
+            assert_eq!(actual, expected);
+            assert_matches!(parse(&actual), Ok(..));
+        }
+
+        #[test]
+        fn f64_bitwise() {
+            let input = include_str!("../../tests/data/input/f64_bitwise.wat");
+            let expected = include_str!("../../tests/data/output/resolved/f64_bitwise.wat");
+            let actual = fmt(input, OPTIONS.clone());
+            assert_eq!(actual, expected);
+            assert_matches!(parse(&actual), Ok(..));
+        }
+
+        #[test]
+        fn f64_cmp() {
+            let input = include_str!("../../tests/data/input/f64_cmp.wat");
+            let expected = include_str!("../../tests/data/output/resolved/f64_cmp.wat");
+            let actual = fmt(input, OPTIONS.clone());
+            assert_eq!(actual, expected);
+            assert_matches!(parse(&actual), Ok(..));
+        }
+
+        #[test]
+        fn f64() {
+            let input = include_str!("../../tests/data/input/f64.wat");
+            let expected = include_str!("../../tests/data/output/resolved/f64.wat");
             let actual = fmt(input, OPTIONS.clone());
             assert_eq!(actual, expected);
             assert_matches!(parse(&actual), Ok(..));
