@@ -1,4 +1,6 @@
-# wasmfmt [![crate][cratesio-badge]][cratesio-crate]
+# wasmfmt
+
+[![crates.io version][cratesio-version]][cratesio-crate] [![crates.io downloads][cratesio-downloads]][cratesio-crate]
 
 A tool for formatting `.wat` code.
 
@@ -70,8 +72,9 @@ cargo test
 
 `wasmfmt` is distributed under the terms of the MIT license. See [LICENSE](LICENSE) for details.
 
-[docsrs-crate]: [https://docs.rs/wasmfmt]
-[cratesio]: [https://crates.io]
-[cratesio-crate]: [https://crates.io/crates/wasmfmt]
-[cratesio-badge]: [https://img.shields.io/crates/v/wasmfmt?style=flat-square]
-[cargo]: [https://github.com/rust-lang/cargo]
+[docsrs-crate]: https://docs.rs/wasmfmt
+[cratesio]: https://crates.io
+[cratesio-crate]: https://crates.io/crates/wasmfmt
+[cratesio-version]: https://img.shields.io/crates/v/wasmfmt
+[cratesio-downloads]: https://img.shields.io/crates/d/wasmfmt
+[cargo]: https://github.com/rust-lang/cargo
