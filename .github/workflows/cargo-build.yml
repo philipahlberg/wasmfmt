@@ -1,0 +1,53 @@
+name: cargo build
+on:
+  release:
+    types: [created]
+jobs:
+  build:
+    name: build
+    strategy:
+      matrix:
+        build:
+          - linux-x86_64
+          - linux-aarch64
+          - macos-x86_64
+          - macos-aarch64
+          - windows-x86_64
+        include:
+          - build: linux-x86_64
+            os: ubuntu-latest
+            target: x86_64-unknown-linux-musl
+            suffix:
+          - build: linux-aarch64
+            os: ubuntu-latest
+            target: aarch64-unknown-linux-musl
+            suffix:
+          - build: macos-x86_64
+            os: macos-latest
+            target: x86_64-apple-darwin
+            suffix:
+          - build: macos-aarch64
+            os: macos-latest
+            target: aarch64-apple-darwin
+            suffix:
+          - build: windows-x86_64
+            os: windows-latest
+            target: x86_64-pc-windows-msvc
+            suffix: .exe
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          target: ${{ matrix.target }}
+          override: true
+      - run: cargo build --release
+      - uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: target/release/wasmfmt${{ matrix.suffix }}
+          asset_name: wasmfmt_${{ matrix.build }}${{ matrix.suffix }}
+          asset_content_type: application/octet-stream
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
