@@ -8,29 +8,29 @@ jobs:
     strategy:
       matrix:
         build:
-          - linux-x86
-          - linux-arm
-          - macos-x86
-          - macos-arm
-          - windows-x86
+          - linux-x86_64
+          - linux-aarch64
+          - macos-x86_64
+          - macos-aarch64
+          - windows-x86_64
         include:
-          - build: linux-arm
+          - build: linux-x86_64
             os: ubuntu-latest
             target: x86_64-unknown-linux-musl
             suffix:
-          - build: linux-arm
+          - build: linux-aarch64
             os: ubuntu-latest
             target: aarch64-unknown-linux-musl
             suffix:
-          - build: macos-x86
+          - build: macos-x86_64
             os: macos-latest
             target: x86_64-apple-darwin
             suffix:
-          - build: macos-arm
+          - build: macos-aarch64
             os: macos-latest
             target: aarch64-apple-darwin
             suffix:
-          - build: windows-x86
+          - build: windows-x86_64
             os: windows-latest
             target: x86_64-pc-windows-msvc
             suffix: .exe
@@ -47,7 +47,7 @@ jobs:
         with:
           upload_url: ${{ github.event.release.upload_url }}
           asset_path: target/release/wasmfmt${{ matrix.suffix }}
-          asset_name: wasmfmt_${{ matrix.target }}${{ matrix.suffix }}
+          asset_name: wasmfmt_${{ matrix.build }}${{ matrix.suffix }}
           asset_content_type: application/octet-stream
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
