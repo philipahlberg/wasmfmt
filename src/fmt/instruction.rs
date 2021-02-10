@@ -185,6 +185,7 @@ fn instr_name(instruction: &Instruction) -> &'static str {
         Instruction::F32Nearest => "f32.nearest",
         Instruction::F32Add => "f32.add",
         Instruction::F32Sub => "f32.sub",
+        Instruction::F32Mul => "f32.mul",
         Instruction::F32Div => "f32.div",
         Instruction::F32Min => "f32.min",
         Instruction::F32Max => "f32.max",
