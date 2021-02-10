@@ -1,5 +1,16 @@
-## Version 0.2.1 - 2021-02-09
+## Version 0.2.2 - 2021-02-10
+=============================
 
+### Fixed
+
+- [Added the missing `f32.mul` instruction][82]
+- [Fixed the numeric `f64` instructions][83]
+
+[82]: https://github.com/philipahlberg/wasmfmt/pull/82
+[83]: https://github.com/philipahlberg/wasmfmt/pull/83
+
+## Version 0.2.1 - 2021-02-09
+=============================
 ### Fixed
 
 - [Updated README.md to reflect API changes][76]
@@ -7,7 +18,7 @@
 [76]: https://github.com/philipahlberg/wasmfmt/pull/76
 
 ## Version 0.2.0 - 2021-02-08
-==========================
+=============================
 
 ### Added
 
