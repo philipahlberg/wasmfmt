@@ -2,7 +2,7 @@ use super::start::Start;
 use super::{Fmt, Formatter};
 use wast::{Module, ModuleField, ModuleKind};
 
-impl<'src> Fmt for Module<'src> {
+impl<'src> Fmt for &Module<'src> {
     fn fmt(&self, formatter: &mut Formatter) {
         formatter.write_line("(module");
         formatter.indent();

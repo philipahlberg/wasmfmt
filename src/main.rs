@@ -2,7 +2,7 @@ use std::fs;
 use std::io::{self, Write as _};
 use std::path::PathBuf;
 use structopt::StructOpt;
-use wasmfmt::{fmt, Diff, Error, Options};
+use wasmfmt::{wat, wast, Diff, Error, Options};
 
 /// Format WebAssembly code.
 #[derive(StructOpt)]
@@ -48,17 +48,34 @@ impl From<Cli> for (Command, Input) {
     }
 }
 
+enum SourceKind {
+    Text,
+    Script,
+}
+
 fn main() -> Result<(), Error> {
     let (command, input) = Cli::from_args().into();
 
+    let options = Options {
+        resolve_names: input.flags.resolve_names,
+    };
+
+    let extension = input.file.as_path().extension()
+        .map(|s| s.to_str().expect("valid unicode"));
+
+    let kind = match extension {
+        Some("wat") => SourceKind::Text,
+        Some("wast") => SourceKind::Script,
+        Some(ext) => return Err(Error::ExtensionUnsupported(ext.to_owned())),
+        None => return Err(Error::ExtensionMissing),
+    };
+
     let source = fs::read_to_string(input.file.as_path())?;
 
-    let formatted = fmt(
-        &source,
-        Options {
-            resolve_names: input.flags.resolve_names,
-        },
-    );
+    let formatted = match kind {
+        SourceKind::Text => wat::fmt(&source, options),
+        SourceKind::Script => wast::fmt(&source, options),
+    };
 
     match command {
         Command::Fix => {

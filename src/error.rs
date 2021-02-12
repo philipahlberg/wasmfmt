@@ -2,6 +2,8 @@ use std::io;
 
 #[derive(Debug)]
 pub enum Error {
+    ExtensionUnsupported(String),
+    ExtensionMissing,
     Io(io::Error),
 }
 
