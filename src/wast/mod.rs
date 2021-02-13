@@ -34,7 +34,13 @@ impl<'src> Fmt for &WastDirective<'src> {
                 };
                 formatter.fmt(&assert_return);
             },
-            WastDirective::AssertTrap { .. } => todo!(),
+            WastDirective::AssertTrap { exec, message, .. } => {
+                let assert_trap = AssertTrap {
+                    exec,
+                    message,
+                };
+                formatter.fmt(&assert_trap);
+            },
             WastDirective::Invoke(..) => todo!(),
             WastDirective::AssertExhaustion { .. } => todo!(),
             WastDirective::AssertInvalid { .. } => todo!(),
@@ -43,6 +49,21 @@ impl<'src> Fmt for &WastDirective<'src> {
             WastDirective::QuoteModule { .. } => todo!(),
             WastDirective::Register { .. } => todo!(),
         }
+    }
+}
+
+struct AssertTrap<'src> {
+    exec: &'src WastExecute<'src>,
+    message: &'src str,
+}
+
+impl<'src> Fmt for &AssertTrap<'src> {
+    fn fmt(&self, formatter: &mut Formatter) {
+        formatter.write("(assert_trap ");
+        formatter.fmt(self.exec);
+        formatter.write(" ");
+        formatter.fmt(self.message);
+        formatter.write(")");
     }
 }
 
