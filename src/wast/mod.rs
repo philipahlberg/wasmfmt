@@ -42,13 +42,34 @@ impl<'src> Fmt for &WastDirective<'src> {
                 formatter.fmt(&assert_trap);
             },
             WastDirective::Invoke(..) => todo!(),
-            WastDirective::AssertExhaustion { .. } => todo!(),
+            WastDirective::AssertExhaustion { call, message, .. } => {
+                let assert_exhaustion = AssertExhaustion {
+                    call,
+                    message,
+                };
+                formatter.fmt(&assert_exhaustion);
+            },
             WastDirective::AssertInvalid { .. } => todo!(),
             WastDirective::AssertMalformed { .. } => todo!(),
             WastDirective::AssertUnlinkable { .. } => todo!(),
             WastDirective::QuoteModule { .. } => todo!(),
             WastDirective::Register { .. } => todo!(),
         }
+    }
+}
+
+struct AssertExhaustion<'src> {
+    call: &'src WastInvoke<'src>,
+    message: &'src str,
+}
+
+impl<'src> Fmt for &AssertExhaustion<'src> {
+    fn fmt(&self, formatter: &mut Formatter) {
+        formatter.write("(assert_exhaustion ");
+        formatter.fmt(self.call);
+        formatter.write(" ");
+        formatter.fmt(self.message);
+        formatter.write(")");
     }
 }
 
