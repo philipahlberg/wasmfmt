@@ -1,6 +1,6 @@
 use super::{Fmt, Formatter, Options};
 
-use wast::{AssertExpression, Float32, Float64, NanPattern, Wast, WastDirective, WastExecute, WastInvoke, parser::{parse, ParseBuffer}};
+use wast::{AssertExpression, Float32, Float64, Module, NanPattern, Wast, WastDirective, WastExecute, WastInvoke, parser::{parse, ParseBuffer}};
 
 /// Format `.wast` source code.
 pub fn fmt(source: &str, _options: Options) -> String {
@@ -49,12 +49,38 @@ impl<'src> Fmt for &WastDirective<'src> {
                 };
                 formatter.fmt(&assert_exhaustion);
             },
-            WastDirective::AssertInvalid { .. } => todo!(),
+            WastDirective::AssertInvalid { module, message, .. } => {
+                let assert_invalid = AssertInvalid {
+                    module,
+                    message,
+                };
+                formatter.fmt(&assert_invalid);
+            },
             WastDirective::AssertMalformed { .. } => todo!(),
             WastDirective::AssertUnlinkable { .. } => todo!(),
             WastDirective::QuoteModule { .. } => todo!(),
             WastDirective::Register { .. } => todo!(),
         }
+    }
+}
+
+struct AssertInvalid<'src> {
+    module: &'src Module<'src>,
+    message: &'src str,
+}
+
+impl<'src> Fmt for &AssertInvalid<'src> {
+    fn fmt(&self, formatter: &mut Formatter) {
+        formatter.write("(assert_invalid");
+        formatter.end_line();
+        formatter.indent();
+        formatter.fmt(self.module);
+        formatter.start_line();
+        formatter.fmt(self.message);
+        formatter.end_line();
+        formatter.deindent();
+        formatter.start_line();
+        formatter.write(")");
     }
 }
 
