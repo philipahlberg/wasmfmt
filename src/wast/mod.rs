@@ -41,7 +41,9 @@ impl<'src> Fmt for &WastDirective<'src> {
                 };
                 formatter.fmt(&assert_trap);
             },
-            WastDirective::Invoke(..) => todo!(),
+            WastDirective::Invoke(invocation) => {
+                formatter.fmt(invocation);
+            },
             WastDirective::AssertExhaustion { call, message, .. } => {
                 let assert_exhaustion = AssertExhaustion {
                     call,
