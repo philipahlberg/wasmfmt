@@ -7,11 +7,11 @@ pub fn fmt(source: &str, _options: Options) -> String {
     let buffer = ParseBuffer::new(source).expect("parse buffer");
     let wast = parse::<Wast>(&buffer).expect("parse");
     let mut formatter = Formatter::new();
-    wast.fmt(&mut formatter);
+    formatter.fmt(&wast);
     formatter.into()
 }
 
-impl<'src> Fmt for Wast<'src> {
+impl<'src> Fmt for &Wast<'src> {
     fn fmt(&self, formatter: &mut Formatter) {
         for directive in &self.directives {
             formatter.start_line();
