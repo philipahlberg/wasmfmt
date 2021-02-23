@@ -80,3 +80,25 @@ pub fn memory_index_is_valid(index: &Index) -> bool {
 pub fn bt_is_empty(block_type: &BlockType) -> bool {
     block_type.label.is_none() && ty_use_is_empty(&block_type.ty)
 }
+
+pub fn to_byte_string(slice: &[u8]) -> String {
+    let mut string = String::new();
+    for &byte in slice {
+        string.push('\\');
+        string.push(to_hex_char(high_four_bits(byte)));
+        string.push(to_hex_char(low_four_bits(byte)));
+    }
+    string
+}
+
+fn to_hex_char(v: u8) -> char {
+    std::char::from_digit(v as u32, 16).unwrap()
+}
+
+const fn high_four_bits(byte: u8) -> u8 {
+    (byte & 0xF0) >> 4
+}
+
+const fn low_four_bits(byte: u8) -> u8 {
+    byte & 0xF
+}

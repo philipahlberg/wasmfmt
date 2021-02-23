@@ -1,4 +1,4 @@
-use super::utils::{id_is_gensym, index_is_default};
+use super::utils::{id_is_gensym, index_is_default, to_byte_string};
 use super::{Fmt, Formatter};
 use wast::{Data, DataKind, DataVal, Memory, MemoryKind, MemoryType};
 
@@ -67,8 +67,7 @@ impl<'src> Fmt for &DataVal<'src> {
     fn fmt(&self, formatter: &mut Formatter) {
         match self {
             DataVal::String(bytes) => {
-                let string = std::str::from_utf8(bytes).expect("valid utf8");
-                formatter.fmt(string);
+                formatter.fmt(to_byte_string(*bytes).as_str());
             }
             DataVal::Integral(..) => {
                 // https://github.com/WebAssembly/wat-numeric-values

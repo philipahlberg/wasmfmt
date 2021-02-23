@@ -1,10 +1,15 @@
 use super::start::Start;
 use super::{Fmt, Formatter};
+use super::utils::to_byte_string;
 use wast::{Module, ModuleField, ModuleKind};
 
 impl<'src> Fmt for &Module<'src> {
     fn fmt(&self, formatter: &mut Formatter) {
-        formatter.write_line("(module");
+        if let ModuleKind::Binary(..) = &self.kind {
+            formatter.write_line("(module binary");
+        } else {
+            formatter.write_line("(module");
+        }
         formatter.indent();
         formatter.fmt(&self.kind);
         formatter.deindent();
@@ -18,7 +23,13 @@ impl<'src> Fmt for &ModuleKind<'src> {
             ModuleKind::Text(fields) => {
                 formatter.fmt(fields);
             }
-            ModuleKind::Binary(..) => unimplemented!(),
+            ModuleKind::Binary(slices) => {
+                for slice in slices {
+                    formatter.start_line();
+                    formatter.fmt(to_byte_string(slice).as_str());
+                    formatter.end_line();
+                }
+            },
         }
     }
 }

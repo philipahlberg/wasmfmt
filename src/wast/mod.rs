@@ -1,6 +1,6 @@
 use super::{Fmt, Formatter, Options};
 
-use wast::{AssertExpression, Float32, Float64, Module, NanPattern, Wast, WastDirective, WastExecute, WastInvoke, parser::{parse, ParseBuffer}};
+use wast::{AssertExpression, Float32, Float64, Module, NanPattern, QuoteModule, Wast, WastDirective, WastExecute, WastInvoke, parser::{parse, ParseBuffer}};
 
 /// Format `.wast` source code.
 pub fn fmt(source: &str, _options: Options) -> String {
@@ -58,12 +58,102 @@ impl<'src> Fmt for &WastDirective<'src> {
                 };
                 formatter.fmt(&assert_invalid);
             },
-            WastDirective::AssertMalformed { .. } => todo!(),
-            WastDirective::AssertUnlinkable { .. } => todo!(),
-            WastDirective::QuoteModule { .. } => todo!(),
-            WastDirective::Register { .. } => todo!(),
+            WastDirective::AssertMalformed { module, message, .. } => {
+                let assert_malformed = AssertMalformed {
+                    module,
+                    message,
+                };
+                formatter.fmt(&assert_malformed);
+            },
+            WastDirective::AssertUnlinkable { module, message, .. } => {
+                let assert_unlinkable = AssertUnlinkable {
+                    module,
+                    message,
+                };
+                formatter.fmt(&assert_unlinkable);
+            },
+            WastDirective::QuoteModule { source: slices, .. } => fmt_quote_slices(slices, formatter),
+            WastDirective::Register { name, module, .. } => {
+                formatter.write("(register ");
+                formatter.fmt(*name);
+                if let Some(id) = module {
+                    formatter.write(" ");
+                    formatter.fmt(id);
+                }
+                formatter.write(")");
+            },
         }
     }
+}
+
+struct AssertUnlinkable<'src> {
+    module: &'src Module<'src>,
+    message: &'src str,
+}
+
+impl<'src> Fmt for &AssertUnlinkable<'src> {
+    fn fmt(&self, formatter: &mut Formatter) {
+        formatter.write("(assert_unlinkable");
+        formatter.end_line();
+        formatter.indent();
+        formatter.fmt(self.module);
+        formatter.start_line();
+        formatter.fmt(self.message);
+        formatter.end_line();
+        formatter.deindent();
+        formatter.start_line();
+        formatter.write(")");
+    }
+}
+
+struct AssertMalformed<'src> {
+    module: &'src QuoteModule<'src>,
+    message: &'src str,
+}
+
+impl<'src> Fmt for &AssertMalformed<'src> {
+    fn fmt(&self, formatter: &mut Formatter) {
+        formatter.write("(assert_malformed");
+        formatter.end_line();
+        formatter.indent();
+        formatter.fmt(self.module);
+        formatter.start_line();
+        formatter.fmt(self.message);
+        formatter.end_line();
+        formatter.deindent();
+        formatter.start_line();
+        formatter.write(")");
+    }
+}
+
+impl<'src> Fmt for &QuoteModule<'src> {
+    fn fmt(&self, formatter: &mut Formatter) {
+        match self {
+            QuoteModule::Module(module) => {
+                formatter.fmt(module);
+            }
+            QuoteModule::Quote(slices) => {
+                fmt_quote_slices(slices, formatter);
+            }
+        }
+    }
+}
+
+fn fmt_quote_slices(slices: &Vec<&[u8]>, formatter: &mut Formatter) {
+    formatter.start_line();
+    formatter.write("(module quote");
+    formatter.indent();
+    for slice in slices {
+        let string = std::str::from_utf8(slice).expect("valid utf8");
+        formatter.end_line();
+        formatter.start_line();
+        formatter.fmt(string);
+    }
+    formatter.deindent();
+    formatter.end_line();
+    formatter.start_line();
+    formatter.write(")");
+    formatter.end_line();
 }
 
 struct AssertInvalid<'src> {
@@ -139,11 +229,17 @@ impl<'src> Fmt for &WastExecute<'src> {
             WastExecute::Invoke(invoke) => {
                 formatter.fmt(invoke);
             },
-            WastExecute::Module(_module) => {
-                todo!()
+            WastExecute::Module(module) => {
+                formatter.fmt(module);
             },
-            WastExecute::Get { module: _, global: _ } => {
-                todo!()
+            WastExecute::Get { module, global } => {
+                formatter.write("(get ");
+                if let Some(id) = module {
+                    formatter.fmt(id);
+                    formatter.write(" ");
+                }
+                formatter.fmt(*global);
+                formatter.write(")");
             }
         }
     }
