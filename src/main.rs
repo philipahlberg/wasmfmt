@@ -2,7 +2,7 @@ use std::fs;
 use std::io::{self, Write as _};
 use std::path::PathBuf;
 use structopt::StructOpt;
-use wasmfmt::{wat, wast, Diff, Error, Options};
+use wasmfmt::{wast, wat, Diff, Error, Options};
 
 /// Format WebAssembly code.
 #[derive(StructOpt)]
@@ -60,7 +60,10 @@ fn main() -> Result<(), Error> {
         resolve_names: input.flags.resolve_names,
     };
 
-    let extension = input.file.as_path().extension()
+    let extension = input
+        .file
+        .as_path()
+        .extension()
         .map(|s| s.to_str().expect("valid unicode"));
 
     let kind = match extension {

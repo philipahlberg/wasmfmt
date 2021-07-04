@@ -67,7 +67,11 @@ impl<'src> Fmt for &DataVal<'src> {
     fn fmt(&self, formatter: &mut Formatter) {
         match self {
             DataVal::String(bytes) => {
-                formatter.fmt(to_byte_string(*bytes).as_str());
+                if let Ok(string) = std::str::from_utf8(bytes) {
+                    formatter.fmt(string)
+                } else {
+                    formatter.fmt(to_byte_string(*bytes).as_str());
+                }
             }
             DataVal::Integral(..) => {
                 // https://github.com/WebAssembly/wat-numeric-values

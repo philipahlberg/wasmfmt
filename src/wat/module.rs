@@ -1,6 +1,6 @@
 use super::start::Start;
-use super::{Fmt, Formatter};
 use super::utils::to_byte_string;
+use super::{Fmt, Formatter};
 use wast::{Module, ModuleField, ModuleKind};
 
 impl<'src> Fmt for &Module<'src> {
@@ -29,7 +29,7 @@ impl<'src> Fmt for &ModuleKind<'src> {
                     formatter.fmt(to_byte_string(slice).as_str());
                     formatter.end_line();
                 }
-            },
+            }
         }
     }
 }

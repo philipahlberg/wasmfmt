@@ -13,11 +13,11 @@ pub(crate) mod table;
 pub(crate) mod r#type;
 pub(crate) mod utils;
 
+use super::{Fmt, Formatter, Options};
 use wast::{
     parser::{parse, ParseBuffer},
     Wat,
 };
-use super::{Options, Fmt, Formatter};
 
 /// Format `.wat` source code.
 /// Uses tabs for indentation.

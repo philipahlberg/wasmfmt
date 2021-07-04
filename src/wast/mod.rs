@@ -1,6 +1,10 @@
 use super::{Fmt, Formatter, Options};
 
-use wast::{AssertExpression, Float32, Float64, Module, NanPattern, QuoteModule, Wast, WastDirective, WastExecute, WastInvoke, parser::{parse, ParseBuffer}};
+use wast::{
+    parser::{parse, ParseBuffer},
+    AssertExpression, Float32, Float64, Module, NanPattern, QuoteModule, Wast, WastDirective,
+    WastExecute, WastInvoke,
+};
 
 /// Format `.wast` source code.
 pub fn fmt(source: &str, _options: Options) -> String {
@@ -26,53 +30,43 @@ impl<'src> Fmt for &WastDirective<'src> {
         match self {
             WastDirective::Module(module) => {
                 formatter.fmt(module);
-            },
+            }
             WastDirective::AssertReturn { exec, results, .. } => {
-                let assert_return = AssertReturn {
-                    exec,
-                    results,
-                };
+                let assert_return = AssertReturn { exec, results };
                 formatter.fmt(&assert_return);
-            },
+            }
             WastDirective::AssertTrap { exec, message, .. } => {
-                let assert_trap = AssertTrap {
-                    exec,
-                    message,
-                };
+                let assert_trap = AssertTrap { exec, message };
                 formatter.fmt(&assert_trap);
-            },
+            }
             WastDirective::Invoke(invocation) => {
                 formatter.fmt(invocation);
-            },
+            }
             WastDirective::AssertExhaustion { call, message, .. } => {
-                let assert_exhaustion = AssertExhaustion {
-                    call,
-                    message,
-                };
+                let assert_exhaustion = AssertExhaustion { call, message };
                 formatter.fmt(&assert_exhaustion);
-            },
-            WastDirective::AssertInvalid { module, message, .. } => {
-                let assert_invalid = AssertInvalid {
-                    module,
-                    message,
-                };
+            }
+            WastDirective::AssertInvalid {
+                module, message, ..
+            } => {
+                let assert_invalid = AssertInvalid { module, message };
                 formatter.fmt(&assert_invalid);
-            },
-            WastDirective::AssertMalformed { module, message, .. } => {
-                let assert_malformed = AssertMalformed {
-                    module,
-                    message,
-                };
+            }
+            WastDirective::AssertMalformed {
+                module, message, ..
+            } => {
+                let assert_malformed = AssertMalformed { module, message };
                 formatter.fmt(&assert_malformed);
-            },
-            WastDirective::AssertUnlinkable { module, message, .. } => {
-                let assert_unlinkable = AssertUnlinkable {
-                    module,
-                    message,
-                };
+            }
+            WastDirective::AssertUnlinkable {
+                module, message, ..
+            } => {
+                let assert_unlinkable = AssertUnlinkable { module, message };
                 formatter.fmt(&assert_unlinkable);
-            },
-            WastDirective::QuoteModule { source: slices, .. } => fmt_quote_slices(slices, formatter),
+            }
+            WastDirective::QuoteModule { source: slices, .. } => {
+                fmt_quote_slices(slices, formatter)
+            }
             WastDirective::Register { name, module, .. } => {
                 formatter.write("(register ");
                 formatter.fmt(*name);
@@ -81,7 +75,7 @@ impl<'src> Fmt for &WastDirective<'src> {
                     formatter.fmt(id);
                 }
                 formatter.write(")");
-            },
+            }
         }
     }
 }
@@ -228,10 +222,10 @@ impl<'src> Fmt for &WastExecute<'src> {
         match self {
             WastExecute::Invoke(invoke) => {
                 formatter.fmt(invoke);
-            },
+            }
             WastExecute::Module(module) => {
                 formatter.fmt(module);
-            },
+            }
             WastExecute::Get { module, global } => {
                 formatter.write("(get ");
                 if let Some(id) = module {
@@ -298,10 +292,10 @@ impl<'src> Fmt for &NanPattern<Float32> {
             }
             NanPattern::ArithmeticNan => {
                 formatter.write("nan:arithmetic");
-            },
+            }
             NanPattern::CanonicalNan => {
                 formatter.write("nan:canonical");
-            },
+            }
         }
     }
 }
@@ -314,10 +308,10 @@ impl<'src> Fmt for &NanPattern<Float64> {
             }
             NanPattern::ArithmeticNan => {
                 formatter.write("nan:arithmetic");
-            },
+            }
             NanPattern::CanonicalNan => {
                 formatter.write("nan:canonical");
-            },
+            }
         }
     }
 }
