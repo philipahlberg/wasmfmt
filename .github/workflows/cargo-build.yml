@@ -21,9 +21,12 @@ jobs:
         run: rustup target add ${{ env.TARGET }}
 
       - name: Build binary
+        shell: bash
         run: |
-          SDKROOT=$(xcrun -sdk macosx --show-sdk-path) \
-          MACOSX_DEPLOYMENT_TARGET=$(xcrun -sdk macosx --show-sdk-platform-version) \
+          # Always errors the first time for some reason
+          xcrun -sdk macosx --show-sdk-path
+          SDKROOT=$(xcrun -sdk macosx --show-sdk-path)
+          MACOSX_DEPLOYMENT_TARGET=$(xcrun -sdk macosx --show-sdk-platform-version)
           cargo build --target ${{ env.TARGET }}
 
       - name: Build archive
@@ -54,7 +57,7 @@ jobs:
         run: rustup show
 
       - name: Build binary
-        run: cargo build --release --target $${{ env.TARGET }}
+        run: cargo build --release --target ${{ env.TARGET }}
 
       - name: Build archive
         shell: bash
