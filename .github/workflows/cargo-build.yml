@@ -17,19 +17,19 @@ jobs:
           - build: linux-x86_64
             os: ubuntu-latest
             target: x86_64-unknown-linux-musl
-            suffix:
+            suffix: ""
           - build: linux-aarch64
             os: ubuntu-latest
             target: aarch64-unknown-linux-musl
-            suffix:
+            suffix: ""
           - build: macos-x86_64
             os: macos-latest
             target: x86_64-apple-darwin
-            suffix:
+            suffix: ""
           - build: macos-aarch64
             os: macos-latest
             target: aarch64-apple-darwin
-            suffix:
+            suffix: ""
           - build: windows-x86_64
             os: windows-latest
             target: x86_64-pc-windows-msvc
