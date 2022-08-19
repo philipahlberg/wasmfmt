@@ -1,57 +1,171 @@
 name: cargo build
 on:
-  release:
-    types: [created]
   push:
     branches: [main]
   pull_request:
     branches: [main]
 jobs:
-  build:
-    name: build
-    strategy:
-      matrix:
-        build:
-          - linux-x86_64
-          - linux-aarch64
-          - macos-x86_64
-          - macos-aarch64
-          - windows-x86_64
-        include:
-          - build: linux-x86_64
-            os: ubuntu-latest
-            target: x86_64-unknown-linux-musl
-            suffix: ""
-          - build: linux-aarch64
-            os: ubuntu-latest
-            target: aarch64-unknown-linux-musl
-            suffix: ""
-          - build: macos-x86_64
-            os: macos-latest
-            target: x86_64-apple-darwin
-            suffix: ""
-          - build: macos-aarch64
-            os: macos-latest
-            target: aarch64-apple-darwin
-            suffix: ""
-          - build: windows-x86_64
-            os: windows-latest
-            target: x86_64-pc-windows-msvc
-            suffix: .exe
-    runs-on: ${{ matrix.os }}
+  build-aarch64-apple-darwin:
+    name: build-aarch64-apple-darwin
+    env:
+      TARGET: aarch64-apple-darwin
+    runs-on: macos-12
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
+      - name: Fetch repository
+        uses: actions/checkout@v2
+
+      - name: Show toolchain
+        run: rustup show
+
+      - name: Install target toolchain
+        run: rustup target add ${{ env.TARGET }}
+
+      - name: Build binary
+        run: |
+          SDKROOT=$(xcrun -sdk macosx --show-sdk-path) \
+          MACOSX_DEPLOYMENT_TARGET=$(xcrun -sdk macosx --show-sdk-platform-version) \
+          cargo build --target ${{ env.TARGET }}
+
+      - name: Build archive
+        shell: bash
+        run: |
+          ARCHIVE=wasmfmt-${{ env.TARGET }}
+          mkdir -p $ARCHIVE
+          cp target/${{ env.TARGET }}/release/wasmfmt $ARCHIVE
+          tar czf "$ARCHIVE.tar.gz" "$ARCHIVE"
+          echo ASSET="$ARCHIVE.tar.gz" >> $GITHUB_ENV
+
+      - name: Upload archive
+        uses: actions/upload-artifact@v3
         with:
-          profile: minimal
-          target: ${{ matrix.target }}
-          override: true
-      - run: cargo build --release
-      - uses: actions/upload-release-asset@v1
+          name: ${{ env.ASSET }}
+          path: ${{ env.ASSET }}
+
+  build-x86_64-apple-darwin:
+    name: build-x86_64-apple-darwin
+    env:
+      TARGET: x86_64-apple-darwin
+    runs-on: macos-12
+    steps:
+      - name: Fetch repository
+        uses: actions/checkout@v2
+
+      - name: Show toolchain
+        run: rustup show
+
+      - name: Build binary
+        run: cargo build --release --target $${{ env.TARGET }}
+
+      - name: Build archive
+        shell: bash
+        run: |
+          ARCHIVE=wasmfmt-${{ env.TARGET }}
+          mkdir -p $ARCHIVE
+          cp target/${{ env.TARGET }}/release/wasmfmt $ARCHIVE
+          tar czf "$ARCHIVE.tar.gz" "$ARCHIVE"
+          echo ASSET="$ARCHIVE.tar.gz" >> $GITHUB_ENV
+
+      - name: Upload archive
+        uses: actions/upload-artifact@v3
         with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_path: target/release/wasmfmt${{ matrix.suffix }}
-          asset_name: wasmfmt_${{ matrix.build }}${{ matrix.suffix }}
-          asset_content_type: application/octet-stream
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          name: ${{ env.ASSET }}
+          path: ${{ env.ASSET }}
+
+  build-aarch64-linux-gnu:
+    name: build-aarch64-linux-gnu
+    env:
+      TARGET: aarch64-unknown-linux-gnu
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Fetch repository
+        uses: actions/checkout@v2
+
+      - name: Show toolchain
+        run: rustup show
+
+      - name: Install target toolchain
+        run: rustup target add ${{ env.TARGET }}
+
+      - name: Install Cross
+        shell: bash
+        run: |
+          cargo install cross
+          echo "CARGO=cross" >> $GITHUB_ENV
+
+      - name: Build binary
+        run: cross build --verbose --release --target ${{ env.TARGET }}
+
+      - name: Build archive
+        shell: bash
+        run: |
+          ARCHIVE=wasmfmt-${{ env.TARGET }}
+          mkdir -p $ARCHIVE
+          cp target/${{ env.TARGET }}/release/wasmfmt $ARCHIVE
+          tar czf "$ARCHIVE.tar.gz" "$ARCHIVE"
+          echo ASSET="$ARCHIVE.tar.gz" >> $GITHUB_ENV
+
+      - name: Upload archive
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ env.ASSET }}
+          path: ${{ env.ASSET }}
+
+  build-x86_64-linux-gnu:
+    name: build-x86_64-linux-gnu
+    env:
+      TARGET: x86_64-unknown-linux-gnu
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Fetch repository
+        uses: actions/checkout@v2
+
+      - name: Show toolchain
+        run: rustup show
+
+      - name: Build binary
+        run: cargo build --verbose --release --target ${{ env.TARGET }}
+
+      - name: Build archive
+        shell: bash
+        run: |
+          ARCHIVE=wasmfmt-${{ env.TARGET }}
+          mkdir -p $ARCHIVE
+          cp target/${{ env.TARGET }}/release/wasmfmt $ARCHIVE
+          tar czf "$ARCHIVE.tar.gz" "$ARCHIVE"
+          echo ASSET="$ARCHIVE.tar.gz" >> $GITHUB_ENV
+
+      - name: Upload archive
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ env.ASSET }}
+          path: ${{ env.ASSET }}
+
+  build-x86_64-windows-msvc:
+    name: build-x86_64-windows-msvc
+    env:
+      TARGET: x86_64-pc-windows-msvc
+    runs-on: windows-2022
+    steps:
+      - name: Fetch repository
+        uses: actions/checkout@v2
+
+      - name: Show toolchain
+        run: rustup show
+
+      - name: Build binary
+        run: cargo build --verbose --release --target ${{ env.TARGET }}
+
+      - name: Build archive
+        shell: bash
+        run: |
+          ARCHIVE=wasmfmt-${{ env.TARGET }}
+          mkdir -p "$ARCHIVE"
+          cp "target/${{ env.TARGET }}/release/wasmfmt.exe" "$ARCHIVE"
+          7z a "$ARCHIVE.zip" "$ARCHIVE"
+          echo ASSET="$ARCHIVE.zip" >> $GITHUB_ENV
+
+      - name: Upload archive
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ env.ASSET }}
+          path: ${{ env.ASSET }}
