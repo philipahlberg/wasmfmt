@@ -23,8 +23,7 @@ jobs:
       - name: Build binary
         shell: bash
         run: |
-          # Always errors the first time for some reason
-          xcrun -sdk macosx --show-sdk-path
+          xcode-select -s /Library/Developer/CommandLineTools
           SDKROOT=$(xcrun -sdk macosx --show-sdk-path)
           MACOSX_DEPLOYMENT_TARGET=$(xcrun -sdk macosx --show-sdk-platform-version)
           cargo build --target ${{ env.TARGET }}
