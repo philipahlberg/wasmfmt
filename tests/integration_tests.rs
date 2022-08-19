@@ -9,7 +9,7 @@ use wast::{
     Error as WastError, Wat,
 };
 
-const BIN: &'static str = env!("CARGO_BIN_EXE_wasmfmt");
+const BIN: &str = env!("CARGO_BIN_EXE_wasmfmt");
 
 fn wasmfmt(args: &[&str]) -> Result<String, String> {
     let process = Command::new(BIN)
@@ -48,10 +48,10 @@ fn fix_works() -> Result<(), Error> {
         .into_os_string()
         .into_string()
         .unwrap();
-    let _ = fs::write(&temp_path, original)?;
+    fs::write(&temp_path, original)?;
     let _ = wasmfmt(&["fix", &temp_path]).expect("failed to format i32.wat");
     let actual = fs::read_to_string(&temp_path).expect("read temp file");
-    let _ = fs::remove_file(&temp_path)?;
+    fs::remove_file(&temp_path)?;
 
     assert_eq!(actual, expected);
     assert_matches!(parse(&actual), Ok(..));

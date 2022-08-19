@@ -21,10 +21,10 @@ impl<'src, 'fmt> fmt::Display for Diff<'src, 'fmt> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
         f.write_str("Difference found.\n")?;
         f.write_str("Source:\n")?;
-        f.write_str(&self.source)?;
+        f.write_str(self.source)?;
         f.write_str("\n")?;
         f.write_str("Formatted:\n")?;
-        f.write_str(&self.formatted)
+        f.write_str(self.formatted)
     }
 }
 

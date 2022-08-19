@@ -19,6 +19,7 @@ use wast::{
 };
 
 /// A formatter used to format individual AST nodes.
+#[derive(Default)]
 pub struct Formatter {
     buffer: String,
     indentation: usize,
@@ -61,18 +62,9 @@ impl Formatter {
     }
 }
 
-impl Default for Formatter {
-    fn default() -> Self {
-        Self {
-            buffer: String::default(),
-            indentation: usize::default(),
-        }
-    }
-}
-
-impl Into<String> for Formatter {
-    fn into(self) -> String {
-        self.buffer
+impl From<Formatter> for String {
+    fn from(formatter: Formatter) -> Self {
+        formatter.buffer
     }
 }
 
@@ -82,17 +74,9 @@ pub trait Fmt {
     fn fmt(&self, formatter: &mut Formatter);
 }
 
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct Options {
     pub resolve_names: bool,
-}
-
-impl Default for Options {
-    fn default() -> Self {
-        Options {
-            resolve_names: false,
-        }
-    }
 }
 
 /// Format `.wat` source code.

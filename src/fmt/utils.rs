@@ -29,12 +29,7 @@ pub fn func_ty_is_empty(func_ty: &FunctionType) -> bool {
 }
 
 pub fn ty_use_is_empty<'a>(ty_use: &TypeUse<'a, FunctionType<'a>>) -> bool {
-    ty_use.index.is_none()
-        && ty_use
-            .inline
-            .as_ref()
-            .map(|ty| func_ty_is_empty(&ty))
-            .unwrap_or(true)
+    ty_use.index.is_none() && ty_use.inline.as_ref().map(func_ty_is_empty).unwrap_or(true)
 }
 
 pub fn id_is_gensym(id: &Id) -> bool {
@@ -70,7 +65,7 @@ pub fn instr_is_block_start(instruction: &Instruction) -> bool {
 }
 
 pub fn memory_arg_is_valid(memory_arg: &MemoryArg) -> bool {
-    memory_index_is_valid(&memory_arg.mem.unwrap_index())
+    memory_index_is_valid(memory_arg.mem.unwrap_index())
 }
 
 pub fn memory_index_is_valid(index: &Index) -> bool {

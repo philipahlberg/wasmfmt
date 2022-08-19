@@ -40,7 +40,7 @@ impl<'src> Fmt for &ItemRef<'src, ExportKind> {
     }
 }
 
-impl<'src> Fmt for &ExportKind {
+impl Fmt for &ExportKind {
     fn fmt(&self, formatter: &mut Formatter) {
         match self {
             ExportKind::Func => {

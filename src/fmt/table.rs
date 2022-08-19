@@ -54,7 +54,7 @@ impl<'src> Fmt for &TableType<'src> {
     }
 }
 
-impl<'src> Fmt for &Limits {
+impl Fmt for &Limits {
     fn fmt(&self, formatter: &mut Formatter) {
         formatter.fmt(self.min);
         if let Some(max) = self.max {

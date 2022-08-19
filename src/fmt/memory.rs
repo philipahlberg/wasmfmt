@@ -78,7 +78,7 @@ impl<'src> Fmt for &DataVal<'src> {
     }
 }
 
-impl<'src> Fmt for &MemoryType {
+impl Fmt for &MemoryType {
     fn fmt(&self, formatter: &mut Formatter) {
         match self {
             MemoryType::B32 { limits, shared: _ } => {
