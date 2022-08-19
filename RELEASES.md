@@ -1,3 +1,12 @@
+## Version 0.2.3 - 2022-08-19
+=============================
+
+### Fixed
+
+- [Update dependencies][371b7]
+
+[371b7]: https://github.com/philipahlberg/wasmfmt/commit/371b75da58a22a375d2269716ea3c9d4b8f4fa72
+
 ## Version 0.2.2 - 2021-02-10
 =============================
 
