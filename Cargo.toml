@@ -1,6 +1,6 @@
 [package]
 name = "wasmfmt"
-version = "0.2.2"
+version = "0.2.3"
 authors = ["philipahlberg <philipahlberg@gmail.com>"]
 edition = "2018"
 repository = "https://github.com/philipahlberg/wasmfmt"
