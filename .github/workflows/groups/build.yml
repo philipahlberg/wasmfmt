@@ -1,13 +1,9 @@
-name: cargo build
+name: build
 on:
   workflow_call:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
 jobs:
-  build-aarch64-apple-darwin:
-    name: build-aarch64-apple-darwin
+  aarch64-apple-darwin:
+    name: aarch64-apple-darwin
     env:
       TARGET: aarch64-apple-darwin
     runs-on: macos-12
@@ -55,8 +51,8 @@ jobs:
           name: ${{ env.ARCHIVE }}
           path: ${{ env.ARCHIVE }}
 
-  build-x86_64-apple-darwin:
-    name: build-x86_64-apple-darwin
+  x86_64-apple-darwin:
+    name: x86_64-apple-darwin
     env:
       TARGET: x86_64-apple-darwin
     runs-on: macos-12
@@ -92,8 +88,8 @@ jobs:
           name: ${{ env.ARCHIVE }}
           path: ${{ env.ARCHIVE }}
 
-  build-aarch64-linux-gnu:
-    name: build-aarch64-linux-gnu
+  aarch64-linux-gnu:
+    name: aarch64-linux-gnu
     env:
       TARGET: aarch64-unknown-linux-gnu
     runs-on: ubuntu-22.04
@@ -135,8 +131,8 @@ jobs:
           name: ${{ env.ARCHIVE }}
           path: ${{ env.ARCHIVE }}
 
-  build-x86_64-linux-gnu:
-    name: build-x86_64-linux-gnu
+  x86_64-linux-gnu:
+    name: x86_64-linux-gnu
     env:
       TARGET: x86_64-unknown-linux-gnu
     runs-on: ubuntu-22.04
@@ -172,8 +168,8 @@ jobs:
           name: ${{ env.ARCHIVE }}
           path: ${{ env.ARCHIVE }}
 
-  build-aarch64-linux-musl:
-    name: build-aarch64-linux-musl
+  aarch64-linux-musl:
+    name: aarch64-linux-musl
     env:
       TARGET: aarch64-unknown-linux-musl
     runs-on: ubuntu-22.04
@@ -215,8 +211,8 @@ jobs:
           name: ${{ env.ARCHIVE }}
           path: ${{ env.ARCHIVE }}
 
-  build-x86_64-linux-musl:
-    name: build-x86_64-linux-musl
+  x86_64-linux-musl:
+    name: x86_64-linux-musl
     env:
       TARGET: x86_64-unknown-linux-musl
     runs-on: ubuntu-22.04
@@ -252,8 +248,8 @@ jobs:
           name: ${{ env.ARCHIVE }}
           path: ${{ env.ARCHIVE }}
 
-  build-aarch64-windows-msvc:
-    name: build-aarch64-windows-msvc
+  aarch64-windows-msvc:
+    name: aarch64-windows-msvc
     env:
       TARGET: aarch64-pc-windows-msvc
     runs-on: windows-2022
@@ -290,8 +286,8 @@ jobs:
           path: ${{ env.ARCHIVE }}
 
 
-  build-x86_64-windows-msvc:
-    name: build-x86_64-windows-msvc
+  x86_64-windows-msvc:
+    name: x86_64-windows-msvc
     env:
       TARGET: x86_64-pc-windows-msvc
     runs-on: windows-2022
