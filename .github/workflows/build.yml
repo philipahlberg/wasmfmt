@@ -94,8 +94,8 @@ jobs:
         echo BIN="target/${{ matrix.target }}/release/$NAME" >> $GITHUB_ENV
         echo DIST="$NAME-${{ matrix.target }}" >> $GITHUB_ENV
         echo ARCHIVE="$NAME-${{ matrix.target }}.tar.gz" >> $GITHUB_ENV
-        echo AR="tar czf" >> $GITHUB_ENV
-        echo CARGO="cargo" >> $GITHUB_ENV
+        echo ZIP="tar czf" >> $GITHUB_ENV
+        echo BUILDER="cargo" >> $GITHUB_ENV
 
     - name: Setup environment variables (linux)
       if: matrix.os == 'linux'
@@ -105,8 +105,8 @@ jobs:
         echo BIN="target/${{ matrix.target }}/release/$NAME" >> $GITHUB_ENV
         echo DIST="$NAME-${{ matrix.target }}" >> $GITHUB_ENV
         echo ARCHIVE="$NAME-${{ matrix.target }}.tar.gz" >> $GITHUB_ENV
-        echo AR="tar czf" >> $GITHUB_ENV
-        echo CARGO="cargo" >> $GITHUB_ENV
+        echo ZIP="tar czf" >> $GITHUB_ENV
+        echo BUILDER="cargo" >> $GITHUB_ENV
 
     - name: Setup environment variables (windows)
       if: matrix.os == 'windows'
@@ -116,8 +116,8 @@ jobs:
         echo BIN="target/${{ matrix.target }}/release/$NAME.exe" >> $GITHUB_ENV
         echo DIST="$NAME-${{ matrix.target }}" >> $GITHUB_ENV
         echo ARCHIVE="$NAME-${{ matrix.target }}.zip" >> $GITHUB_ENV
-        echo AR="7z a" >> $GITHUB_ENV
-        echo CARGO="cargo" >> $GITHUB_ENV
+        echo ZIP="7z a" >> $GITHUB_ENV
+        echo BUILDER="cargo" >> $GITHUB_ENV
 
     - name: Check environment variables
       shell: bash
@@ -126,7 +126,7 @@ jobs:
         echo "DIST: $DIST"
         echo "ARCHIVE: $ARCHIVE"
         echo "AR: $AR"
-        echo "CARGO: $CARGO"
+        echo "BUILDER: $BUILDER"
 
     - name: Setup compiler (aarch64/darwin)
       if: matrix.os == 'darwin' && matrix.arch == 'aarch64'
@@ -146,10 +146,13 @@ jobs:
 
     - name: Setup compiler (aarch64/linux)
       if: matrix.os == 'linux' && matrix.arch == 'aarch64'
-      run: cargo install cross
+      shell: bash
+      run: |
+        cargo install cross
+        echo BUILDER="cross" >> $GITHUB_ENV
 
     - name: Build binary
-      run: ${{ env.CARGO }} build --verbose --release --target ${{ matrix.target }}
+      run: ${{ env.BUILDER }} build --verbose --release --target ${{ matrix.target }}
 
     - name: Check binary
       run: file "$BIN"
@@ -159,7 +162,7 @@ jobs:
       run: |
         mkdir -p "$DIST"
         cp "$BIN" "$DIST"
-        ${{ env.AR }} "$ARCHIVE" "$DIST"
+        ${{ env.ZIP }} "$ARCHIVE" "$DIST"
 
     - name: Upload archive
       uses: actions/upload-artifact@v3
