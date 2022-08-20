@@ -4,13 +4,16 @@ on:
     tags:
     - "v[0-9]+.[0-9]+.[0-9]+"
 jobs:
-  build-assets:
+  test:
+    uses: ./.github/workflows/cargo-test.yml
+
+  build:
     uses: ./.github/workflows/cargo-build.yml
 
-  create-release:
-    name: create-release
+  release:
+    name: release
     runs-on: ubuntu-22.04
-    needs: [build-assets]
+    needs: [test, build]
     steps:
       - name: Parse version tag
         run: |
@@ -31,3 +34,15 @@ jobs:
           fail_on_unmatched_files: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  publish:
+    runs-on: ubuntu-22.04
+    needs: [test]
+    steps:
+    - name: Fetch repository
+      uses: actions/checkout@v2
+
+    - name: Publish crate
+      run: cargo publish
+      env:
+        CARGO_REGISTRY_TOKEN: ${{ secrets.CRATESIO_TOKEN }}
