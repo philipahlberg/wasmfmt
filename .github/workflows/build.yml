@@ -102,7 +102,6 @@ jobs:
       shell: bash
       run: |
         NAME=wasmfmt
-        echo TARGET="$ARCH-$VENDOR-$OS-$ENVIRONMENT" >> $GITHUB_ENV
         echo BIN="target/${{ matrix.target }}/release/$NAME" >> $GITHUB_ENV
         echo DIST="$NAME-${{ matrix.target }}" >> $GITHUB_ENV
         echo ARCHIVE="$DIST.tar.gz" >> $GITHUB_ENV
@@ -114,7 +113,6 @@ jobs:
       shell: bash
       run: |
         NAME=wasmfmt
-        echo TARGET="$ARCH-$VENDOR-$OS-$ENVIRONMENT" >> $GITHUB_ENV
         echo BIN="target/${{ matrix.target }}/release/$NAME.exe" >> $GITHUB_ENV
         echo DIST="$NAME-${{ matrix.target }}" >> $GITHUB_ENV
         echo ARCHIVE="$DIST.zip" >> $GITHUB_ENV
@@ -124,7 +122,6 @@ jobs:
     - name: Check environment variables
       shell: bash
       run: |
-        echo "TARGET: $TARGET"
         echo "BIN: $BIN"
         echo "DIST: $DIST"
         echo "ARCHIVE: $ARCHIVE"
