@@ -38,6 +38,9 @@ jobs:
       - name: Check binary
         run: file target/${{ env.TARGET }}/release/wasmfmt
 
+      - name: Strip binary
+        run: strip target/${{ env.TARGET }}/release/wasmfmt
+
       - name: Build archive
         shell: bash
         run: |
@@ -70,6 +73,9 @@ jobs:
 
       - name: Check binary
         run: file target/${{ env.TARGET }}/release/wasmfmt
+
+      - name: Strip binary
+        run: strip target/${{ env.TARGET }}/release/wasmfmt
 
       - name: Build archive
         shell: bash
@@ -113,6 +119,9 @@ jobs:
       - name: Check binary
         run: file target/${{ env.TARGET }}/release/wasmfmt
 
+      - name: Strip binary
+        run: strip target/${{ env.TARGET }}/release/wasmfmt
+
       - name: Build archive
         shell: bash
         run: |
@@ -146,6 +155,9 @@ jobs:
       - name: Check binary
         run: file target/${{ env.TARGET }}/release/wasmfmt
 
+      - name: Strip binary
+        run: strip target/${{ env.TARGET }}/release/wasmfmt
+
       - name: Build archive
         shell: bash
         run: |
@@ -178,6 +190,9 @@ jobs:
 
       - name: Check binary
         run: file target/${{ env.TARGET }}/release/wasmfmt
+
+      - name: Strip binary
+        run: strip target/${{ env.TARGET }}/release/wasmfmt
 
       - name: Build archive
         shell: bash
