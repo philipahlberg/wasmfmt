@@ -155,7 +155,7 @@ jobs:
       run: ${{ env.BUILDER }} build --verbose --release --target ${{ matrix.target }}
 
     - name: Check binary
-      run: file "$BIN"
+      run: file ${{ env.BIN }}
 
     - name: Build archive
       shell: bash
