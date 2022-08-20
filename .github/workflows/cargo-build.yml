@@ -35,6 +35,9 @@ jobs:
       - name: Build binary
         run: cargo build --verbose --release --target ${{ env.TARGET }}
 
+      - name: Check binary
+        run: file target/${{ env.TARGET }}/release/wasmfmt
+
       - name: Build archive
         shell: bash
         run: |
@@ -64,6 +67,9 @@ jobs:
 
       - name: Build binary
         run: cargo build --release --target ${{ env.TARGET }}
+
+      - name: Check binary
+        run: file target/${{ env.TARGET }}/release/wasmfmt
 
       - name: Build archive
         shell: bash
@@ -104,6 +110,9 @@ jobs:
       - name: Build binary
         run: cross build --verbose --release --target ${{ env.TARGET }}
 
+      - name: Check binary
+        run: file target/${{ env.TARGET }}/release/wasmfmt
+
       - name: Build archive
         shell: bash
         run: |
@@ -134,6 +143,9 @@ jobs:
       - name: Build binary
         run: cargo build --verbose --release --target ${{ env.TARGET }}
 
+      - name: Check binary
+        run: file target/${{ env.TARGET }}/release/wasmfmt
+
       - name: Build archive
         shell: bash
         run: |
@@ -163,6 +175,9 @@ jobs:
 
       - name: Build binary
         run: cargo build --verbose --release --target ${{ env.TARGET }}
+
+      - name: Check binary
+        run: file target/${{ env.TARGET }}/release/wasmfmt
 
       - name: Build archive
         shell: bash
