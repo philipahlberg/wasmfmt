@@ -130,7 +130,7 @@ jobs:
         echo MACOSX_DEPLOYMENT_TARGET="$(xcrun -sdk macosx --show-sdk-platform-version)" >> $GITHUB_ENV
 
     - name: Setup compiler (aarch64/linux)
-      if: env.OS == 'linux' && env.ARCH == 'aarch64'
+      if: matrix.os == 'linux' && matrix.arch == 'aarch64'
       run: cargo install cross
 
     - name: Build binary
