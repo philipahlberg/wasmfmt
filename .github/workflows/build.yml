@@ -93,7 +93,7 @@ jobs:
         NAME=wasmfmt
         echo BIN="target/${{ matrix.target }}/release/$NAME" >> $GITHUB_ENV
         echo DIST="$NAME-${{ matrix.target }}" >> $GITHUB_ENV
-        echo ARCHIVE="$DIST.tar.gz" >> $GITHUB_ENV
+        echo ARCHIVE="$NAME-${{ matrix.target }}.tar.gz" >> $GITHUB_ENV
         echo AR="tar czf" >> $GITHUB_ENV
         echo CARGO="cargo" >> $GITHUB_ENV
 
@@ -104,7 +104,7 @@ jobs:
         NAME=wasmfmt
         echo BIN="target/${{ matrix.target }}/release/$NAME" >> $GITHUB_ENV
         echo DIST="$NAME-${{ matrix.target }}" >> $GITHUB_ENV
-        echo ARCHIVE="$DIST.tar.gz" >> $GITHUB_ENV
+        echo ARCHIVE="$NAME-${{ matrix.target }}.tar.gz" >> $GITHUB_ENV
         echo AR="tar czf" >> $GITHUB_ENV
         echo CARGO="cargo" >> $GITHUB_ENV
 
@@ -115,7 +115,7 @@ jobs:
         NAME=wasmfmt
         echo BIN="target/${{ matrix.target }}/release/$NAME.exe" >> $GITHUB_ENV
         echo DIST="$NAME-${{ matrix.target }}" >> $GITHUB_ENV
-        echo ARCHIVE="$DIST.zip" >> $GITHUB_ENV
+        echo ARCHIVE="$NAME-${{ matrix.target }}.zip" >> $GITHUB_ENV
         echo AR="7z a" >> $GITHUB_ENV
         echo CARGO="cargo" >> $GITHUB_ENV
 
@@ -134,10 +134,15 @@ jobs:
       run: |
         xcrun -sdk macosx --show-sdk-path > /dev/null
         xcrun -sdk macosx --show-sdk-platform-version > /dev/null
-        echo SDKROOT="$(xcrun -sdk macosx --show-sdk-path)" >> $GITHUB_ENV
+
+        SDKROOT="$(xcrun -sdk macosx --show-sdk-path)"
+        MACOSX_DEPLOYMENT_TARGET="$(xcrun -sdk macosx --show-sdk-platform-version)"
+
         echo "SDKROOT: $SDKROOT"
-        echo MACOSX_DEPLOYMENT_TARGET="$(xcrun -sdk macosx --show-sdk-platform-version)" >> $GITHUB_ENV
         echo "MACOSX_DEPLOYMENT_TARGET: $MACOSX_DEPLOYMENT_TARGET"
+
+        echo SDKROOT="$SDKROOT" >> $GITHUB_ENV
+        echo MACOSX_DEPLOYMENT_TARGET="$MACOSX_DEPLOYMENT_TARGET" >> $GITHUB_ENV
 
     - name: Setup compiler (aarch64/linux)
       if: matrix.os == 'linux' && matrix.arch == 'aarch64'
