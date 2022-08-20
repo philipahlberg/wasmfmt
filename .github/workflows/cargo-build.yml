@@ -20,16 +20,20 @@ jobs:
       - name: Install target toolchain
         run: rustup target add ${{ env.TARGET }}
 
-      - name: Build binary
+      - name: Set environment variables
         shell: bash
         run: |
           xcrun -sdk macosx --show-sdk-path
-          SDKROOT=$(xcrun -sdk macosx --show-sdk-path)
-          echo "SDK Root: $SDKROOT"
-          xcrun -sdk macosx --show-sdk-path
-          MACOSX_DEPLOYMENT_TARGET=$(xcrun -sdk macosx --show-sdk-platform-version)
-          echo "Deployment Target: $MACOSX_DEPLOYMENT_TARGET"
-          cargo build --target ${{ env.TARGET }}
+          xcrun -sdk macosx --show-sdk-platform-version
+
+          echo SDKROOT="$(xcrun -sdk macosx --show-sdk-path)" >> $GITHUB_ENV
+          echo MACOSX_DEPLOYMENT_TARGET="$(xcrun -sdk macosx --show-sdk-platform-version)" >> $GITHUB_ENV
+
+          echo "SDKROOT: $SDKROOT"
+          echo "MACOSX_DEPLOYMENT_TARGET: $MACOSX_DEPLOYMENT_TARGET"
+
+      - name: Build binary
+        run: cargo build --verbose --release --target ${{ env.TARGET }}
 
       - name: Build archive
         shell: bash
