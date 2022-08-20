@@ -161,6 +161,84 @@ jobs:
           name: ${{ env.ASSET }}
           path: ${{ env.ASSET }}
 
+  build-aarch64-linux-musl:
+    name: build-aarch64-linux-musl
+    env:
+      TARGET: aarch64-unknown-linux-musl
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Fetch repository
+        uses: actions/checkout@v2
+
+      - name: Show toolchain
+        run: rustup show
+
+      - name: Install target toolchain
+        run: rustup target add ${{ env.TARGET }}
+
+      - name: Install Cross
+        shell: bash
+        run: |
+          cargo install cross
+          echo "CARGO=cross" >> $GITHUB_ENV
+
+      - name: Build binary
+        run: cross build --verbose --release --target ${{ env.TARGET }}
+
+      - name: Check binary
+        run: file target/${{ env.TARGET }}/release/wasmfmt
+
+      - name: Build archive
+        shell: bash
+        run: |
+          ARCHIVE=wasmfmt-${{ env.TARGET }}
+          mkdir -p $ARCHIVE
+          cp target/${{ env.TARGET }}/release/wasmfmt $ARCHIVE
+          tar czf "$ARCHIVE.tar.gz" "$ARCHIVE"
+          echo ASSET="$ARCHIVE.tar.gz" >> $GITHUB_ENV
+
+      - name: Upload archive
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ env.ASSET }}
+          path: ${{ env.ASSET }}
+
+  build-x86_64-linux-musl:
+    name: build-x86_64-linux-musl
+    env:
+      TARGET: x86_64-unknown-linux-musl
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Fetch repository
+        uses: actions/checkout@v2
+
+      - name: Show toolchain
+        run: rustup show
+
+      - name: Install target toolchain
+        run: rustup target add ${{ env.TARGET }}
+
+      - name: Build binary
+        run: cargo build --verbose --release --target ${{ env.TARGET }}
+
+      - name: Check binary
+        run: file target/${{ env.TARGET }}/release/wasmfmt
+
+      - name: Build archive
+        shell: bash
+        run: |
+          ARCHIVE=wasmfmt-${{ env.TARGET }}
+          mkdir -p $ARCHIVE
+          cp target/${{ env.TARGET }}/release/wasmfmt $ARCHIVE
+          tar czf "$ARCHIVE.tar.gz" "$ARCHIVE"
+          echo ASSET="$ARCHIVE.tar.gz" >> $GITHUB_ENV
+
+      - name: Upload archive
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ env.ASSET }}
+          path: ${{ env.ASSET }}
+
   build-aarch64-windows-msvc:
     name: build-aarch64-windows-msvc
     env:
