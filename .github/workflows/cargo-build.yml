@@ -161,6 +161,40 @@ jobs:
           name: ${{ env.ASSET }}
           path: ${{ env.ASSET }}
 
+  build-aarch64-windows-msvc:
+    name: build-aarch64-windows-msvc
+    env:
+      TARGET: aarch64-pc-windows-msvc
+    runs-on: windows-2022
+    steps:
+      - name: Fetch repository
+        uses: actions/checkout@v2
+
+      - name: Show toolchain
+        run: rustup show
+
+      - name: Build binary
+        run: cargo build --verbose --release --target ${{ env.TARGET }}
+
+      - name: Check binary
+        run: file target/${{ env.TARGET }}/release/wasmfmt
+
+      - name: Build archive
+        shell: bash
+        run: |
+          ARCHIVE=wasmfmt-${{ env.TARGET }}
+          mkdir -p "$ARCHIVE"
+          cp "target/${{ env.TARGET }}/release/wasmfmt.exe" "$ARCHIVE"
+          7z a "$ARCHIVE.zip" "$ARCHIVE"
+          echo ASSET="$ARCHIVE.zip" >> $GITHUB_ENV
+
+      - name: Upload archive
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ env.ASSET }}
+          path: ${{ env.ASSET }}
+
+
   build-x86_64-windows-msvc:
     name: build-x86_64-windows-msvc
     env:
