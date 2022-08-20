@@ -17,6 +17,7 @@ jobs:
           - x86_64-apple-darwin
           - aarch64-pc-windows-msvc
           - x86_64-pc-windows-msvc
+
         include:
           - target: aarch64-unknown-linux-gnu
             host: ubuntu-22.04
@@ -120,6 +121,16 @@ jobs:
         echo AR="7z a" >> $GITHUB_ENV
         echo CARGO="cargo" >> $GITHUB_ENV
 
+    - name: Check environment variables
+      shell: bash
+      run: |
+        echo "TARGET: $TARGET"
+        echo "BIN: $BIN"
+        echo "DIST: $DIST"
+        echo "ARCHIVE: $ARCHIVE"
+        echo "AR: $AR"
+        echo "CARGO: $CARGO"
+
     - name: Setup compiler (aarch64/darwin)
       if: matrix.os == 'darwin' && matrix.arch == 'aarch64'
       shell: bash
@@ -127,7 +138,9 @@ jobs:
         xcrun -sdk macosx --show-sdk-path > /dev/null
         xcrun -sdk macosx --show-sdk-platform-version > /dev/null
         echo SDKROOT="$(xcrun -sdk macosx --show-sdk-path)" >> $GITHUB_ENV
+        echo "SDKROOT: $SDKROOT"
         echo MACOSX_DEPLOYMENT_TARGET="$(xcrun -sdk macosx --show-sdk-platform-version)" >> $GITHUB_ENV
+        echo "MACOSX_DEPLOYMENT_TARGET: $MACOSX_DEPLOYMENT_TARGET"
 
     - name: Setup compiler (aarch64/linux)
       if: matrix.os == 'linux' && matrix.arch == 'aarch64'
@@ -144,7 +157,7 @@ jobs:
       run: |
         mkdir -p "$DIST"
         cp "$BIN" "$DIST"
-        $AR "$ARCHIVE" "$DIST"
+        ${{ env.AR }} "$ARCHIVE" "$DIST"
 
     - name: Upload archive
       uses: actions/upload-artifact@v3
