@@ -4,323 +4,150 @@ on:
   workflow_call:
 
 jobs:
-  aarch64-apple-darwin:
-    name: aarch64-apple-darwin
-    env:
-      TARGET: aarch64-apple-darwin
-    runs-on: macos-12
+  build:
+    name: build
+    strategy:
+      matrix:
+        target:
+          - aarch64-unknown-linux-gnu
+          - x86_64-unknown-linux-gnu
+          - aarch64-unknown-linux-musl
+          - x86_64-unknown-linux-musl
+          - aarch64-apple-darwin
+          - x86_64-apple-darwin
+          - aarch64-pc-windows-msvc
+          - x86_64-pc-windows-msvc
+        include:
+          - target: aarch64-unknown-linux-gnu
+            host: ubuntu-22.04
+            arch: aarch64
+            vendor: unknown
+            os: linux
+            environment: gnu
+
+          - target: x86_64-unknown-linux-gnu
+            host: ubuntu-22.04
+            arch: x86_64
+            vendor: unknown
+            os: linux
+            environment: gnu
+
+          - target: aarch64-unknown-linux-musl
+            host: ubuntu-22.04
+            arch: aarch64
+            vendor: unknown
+            os: linux
+            environment: musl
+
+          - target: x86_64-unknown-linux-musl
+            host: ubuntu-22.04
+            arch: x86_64
+            vendor: unknown
+            os: linux
+            environment: musl
+
+          - target: aarch64-apple-darwin
+            host: macos-12
+            arch: aarch64
+            vendor: apple
+            os: darwin
+            environment: unknown
+
+          - target: x86_64-apple-darwin
+            host: macos-12
+            arch: x86_64
+            vendor: apple
+            os: darwin
+            environment: unknown
+
+          - target: aarch64-pc-windows-msvc
+            host: windows-2022
+            arch: aarch64
+            vendor: pc
+            os: windows
+            environment: msvc
+
+          - target: x86_64-pc-windows-msvc
+            host: windows-2022
+            arch: x86_64
+            vendor: pc
+            os: windows
+            environment: msvc
+
+    runs-on: ${{ matrix.host }}
     steps:
-      - name: Fetch repository
-        uses: actions/checkout@v2
-
-      - name: Check toolchain
-        run: rustup show
-
-      - name: Install target toolchain
-        run: rustup target add ${{ env.TARGET }}
-
-      - name: Set environment variables
-        shell: bash
-        run: |
-          xcrun -sdk macosx --show-sdk-path > /dev/null
-          xcrun -sdk macosx --show-sdk-platform-version > /dev/null
-
-          echo SDKROOT="$(xcrun -sdk macosx --show-sdk-path)" >> $GITHUB_ENV
-          echo MACOSX_DEPLOYMENT_TARGET="$(xcrun -sdk macosx --show-sdk-platform-version)" >> $GITHUB_ENV
-
-          echo "SDKROOT: $SDKROOT"
-          echo "MACOSX_DEPLOYMENT_TARGET: $MACOSX_DEPLOYMENT_TARGET"
-
-      - name: Build binary
-        run: cargo build --verbose --release --target ${{ env.TARGET }}
-
-      - name: Check binary
-        run: file target/${{ env.TARGET }}/release/wasmfmt
-
-      - name: Build archive
-        shell: bash
-        run: |
-          NAME=wasmfmt-${{ env.TARGET }}
-          echo ARCHIVE="$NAME.tar.gz" >> $GITHUB_ENV
-
-          mkdir -p $NAME
-          cp target/${{ env.TARGET }}/release/wasmfmt $NAME
-          tar czf "$NAME.tar.gz" "$NAME"
-
-      - name: Upload archive
-        uses: actions/upload-artifact@v3
-        with:
-          name: ${{ env.ARCHIVE }}
-          path: ${{ env.ARCHIVE }}
-
-  x86_64-apple-darwin:
-    name: x86_64-apple-darwin
-    env:
-      TARGET: x86_64-apple-darwin
-    runs-on: macos-12
-    steps:
-      - name: Fetch repository
-        uses: actions/checkout@v2
-
-      - name: Check toolchain
-        run: rustup show
-
-      - name: Install target toolchain
-        run: rustup target add ${{ env.TARGET }}
-
-      - name: Build binary
-        run: cargo build --release --target ${{ env.TARGET }}
-
-      - name: Check binary
-        run: file target/${{ env.TARGET }}/release/wasmfmt
-
-      - name: Build archive
-        shell: bash
-        run: |
-          NAME=wasmfmt-${{ env.TARGET }}
-          echo ARCHIVE="$NAME.tar.gz" >> $GITHUB_ENV
-
-          mkdir -p $NAME
-          cp target/${{ env.TARGET }}/release/wasmfmt $NAME
-          tar czf "$NAME.tar.gz" "$NAME"
-
-      - name: Upload archive
-        uses: actions/upload-artifact@v3
-        with:
-          name: ${{ env.ARCHIVE }}
-          path: ${{ env.ARCHIVE }}
-
-  aarch64-linux-gnu:
-    name: aarch64-linux-gnu
-    env:
-      TARGET: aarch64-unknown-linux-gnu
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Fetch repository
-        uses: actions/checkout@v2
-
-      - name: Check toolchain
-        run: rustup show
-
-      - name: Install target toolchain
-        run: rustup target add ${{ env.TARGET }}
-
-      - name: Install Cross
-        shell: bash
-        run: |
-          cargo install cross
-          echo "CARGO=cross" >> $GITHUB_ENV
-
-      - name: Build binary
-        run: cross build --verbose --release --target ${{ env.TARGET }}
-
-      - name: Check binary
-        run: file target/${{ env.TARGET }}/release/wasmfmt
-
-      - name: Build archive
-        shell: bash
-        run: |
-          NAME=wasmfmt-${{ env.TARGET }}
-          echo ARCHIVE="$NAME.tar.gz" >> $GITHUB_ENV
-
-          mkdir -p $NAME
-          cp target/${{ env.TARGET }}/release/wasmfmt $NAME
-          tar czf "$NAME.tar.gz" "$NAME"
-
-      - name: Upload archive
-        uses: actions/upload-artifact@v3
-        with:
-          name: ${{ env.ARCHIVE }}
-          path: ${{ env.ARCHIVE }}
-
-  x86_64-linux-gnu:
-    name: x86_64-linux-gnu
-    env:
-      TARGET: x86_64-unknown-linux-gnu
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Fetch repository
-        uses: actions/checkout@v2
-
-      - name: Check toolchain
-        run: rustup show
-
-      - name: Install target toolchain
-        run: rustup target add ${{ env.TARGET }}
-
-      - name: Build binary
-        run: cargo build --verbose --release --target ${{ env.TARGET }}
-
-      - name: Check binary
-        run: file target/${{ env.TARGET }}/release/wasmfmt
-
-      - name: Build archive
-        shell: bash
-        run: |
-          NAME=wasmfmt-${{ env.TARGET }}
-          echo ARCHIVE="$NAME.tar.gz" >> $GITHUB_ENV
-
-          mkdir -p $NAME
-          cp target/${{ env.TARGET }}/release/wasmfmt $NAME
-          tar czf "$NAME.tar.gz" "$NAME"
-
-      - name: Upload archive
-        uses: actions/upload-artifact@v3
-        with:
-          name: ${{ env.ARCHIVE }}
-          path: ${{ env.ARCHIVE }}
-
-  aarch64-linux-musl:
-    name: aarch64-linux-musl
-    env:
-      TARGET: aarch64-unknown-linux-musl
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Fetch repository
-        uses: actions/checkout@v2
-
-      - name: Check toolchain
-        run: rustup show
-
-      - name: Install target toolchain
-        run: rustup target add ${{ env.TARGET }}
-
-      - name: Install Cross
-        shell: bash
-        run: |
-          cargo install cross
-          echo "CARGO=cross" >> $GITHUB_ENV
-
-      - name: Build binary
-        run: cross build --verbose --release --target ${{ env.TARGET }}
-
-      - name: Check binary
-        run: file target/${{ env.TARGET }}/release/wasmfmt
-
-      - name: Build archive
-        shell: bash
-        run: |
-          NAME=wasmfmt-${{ env.TARGET }}
-          echo ARCHIVE="$NAME.tar.gz" >> $GITHUB_ENV
-
-          mkdir -p $NAME
-          cp target/${{ env.TARGET }}/release/wasmfmt $NAME
-          tar czf "$NAME.tar.gz" "$NAME"
-
-      - name: Upload archive
-        uses: actions/upload-artifact@v3
-        with:
-          name: ${{ env.ARCHIVE }}
-          path: ${{ env.ARCHIVE }}
-
-  x86_64-linux-musl:
-    name: x86_64-linux-musl
-    env:
-      TARGET: x86_64-unknown-linux-musl
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Fetch repository
-        uses: actions/checkout@v2
-
-      - name: Check toolchain
-        run: rustup show
-
-      - name: Install target toolchain
-        run: rustup target add ${{ env.TARGET }}
-
-      - name: Build binary
-        run: cargo build --verbose --release --target ${{ env.TARGET }}
-
-      - name: Check binary
-        run: file target/${{ env.TARGET }}/release/wasmfmt
-
-      - name: Build archive
-        shell: bash
-        run: |
-          NAME=wasmfmt-${{ env.TARGET }}
-          echo ARCHIVE="$NAME.tar.gz" >> $GITHUB_ENV
-
-          mkdir -p $NAME
-          cp target/${{ env.TARGET }}/release/wasmfmt $NAME
-          tar czf "$NAME.tar.gz" "$NAME"
-
-      - name: Upload archive
-        uses: actions/upload-artifact@v3
-        with:
-          name: ${{ env.ARCHIVE }}
-          path: ${{ env.ARCHIVE }}
-
-  aarch64-windows-msvc:
-    name: aarch64-windows-msvc
-    env:
-      TARGET: aarch64-pc-windows-msvc
-    runs-on: windows-2022
-    steps:
-      - name: Fetch repository
-        uses: actions/checkout@v2
-
-      - name: Check toolchain
-        run: rustup show
-
-      - name: Install target toolchain
-        run: rustup target add ${{ env.TARGET }}
-
-      - name: Build binary
-        run: cargo build --verbose --release --target ${{ env.TARGET }}
-
-      - name: Check binary
-        run: file target/${{ env.TARGET }}/release/wasmfmt
-
-      - name: Build archive
-        shell: bash
-        run: |
-          NAME=wasmfmt-${{ env.TARGET }}
-          echo ARCHIVE="$NAME.zip" >> $GITHUB_ENV
-
-          mkdir -p "$NAME"
-          cp "target/${{ env.TARGET }}/release/wasmfmt.exe" "$NAME"
-          7z a "$NAME.zip" "$NAME"
-
-      - name: Upload archive
-        uses: actions/upload-artifact@v3
-        with:
-          name: ${{ env.ARCHIVE }}
-          path: ${{ env.ARCHIVE }}
-
-
-  x86_64-windows-msvc:
-    name: x86_64-windows-msvc
-    env:
-      TARGET: x86_64-pc-windows-msvc
-    runs-on: windows-2022
-    steps:
-      - name: Fetch repository
-        uses: actions/checkout@v2
-
-      - name: Check toolchain
-        run: rustup show
-
-      - name: Install target toolchain
-        run: rustup target add ${{ env.TARGET }}
-
-      - name: Build binary
-        run: cargo build --verbose --release --target ${{ env.TARGET }}
-
-      - name: Check binary
-        run: file target/${{ env.TARGET }}/release/wasmfmt
-
-      - name: Build archive
-        shell: bash
-        run: |
-          NAME=wasmfmt-${{ env.TARGET }}
-          echo ARCHIVE="$NAME.zip" >> $GITHUB_ENV
-
-          mkdir -p "$NAME"
-          cp "target/${{ env.TARGET }}/release/wasmfmt.exe" "$NAME"
-          7z a "$NAME.zip" "$NAME"
-
-      - name: Upload archive
-        uses: actions/upload-artifact@v3
-        with:
-          name: ${{ env.ARCHIVE }}
-          path: ${{ env.ARCHIVE }}
+    - name: Fetch repository
+      uses: actions/checkout@v2
+
+    - name: Check toolchain
+      run: rustup show
+
+    - name: Install target toolchain
+      run: rustup target add ${{ matrix.target }}
+
+    - name: Setup environment variables (darwin)
+      if: matrix.os == 'darwin'
+      shell: bash
+      run: |
+        NAME=wasmfmt
+        echo BIN="target/${{ matrix.target }}/release/$NAME" >> $GITHUB_ENV
+        echo DIST="$NAME-${{ matrix.target }}" >> $GITHUB_ENV
+        echo ARCHIVE="$DIST.tar.gz" >> $GITHUB_ENV
+        echo AR="tar czf" >> $GITHUB_ENV
+        echo CARGO="cargo" >> $GITHUB_ENV
+
+    - name: Setup environment variables (linux)
+      if: matrix.os == 'linux'
+      shell: bash
+      run: |
+        NAME=wasmfmt
+        echo TARGET="$ARCH-$VENDOR-$OS-$ENVIRONMENT" >> $GITHUB_ENV
+        echo BIN="target/${{ matrix.target }}/release/$NAME" >> $GITHUB_ENV
+        echo DIST="$NAME-${{ matrix.target }}" >> $GITHUB_ENV
+        echo ARCHIVE="$DIST.tar.gz" >> $GITHUB_ENV
+        echo AR="tar czf" >> $GITHUB_ENV
+        echo CARGO="cargo" >> $GITHUB_ENV
+
+    - name: Setup environment variables (windows)
+      if: matrix.os == 'windows'
+      shell: bash
+      run: |
+        NAME=wasmfmt
+        echo TARGET="$ARCH-$VENDOR-$OS-$ENVIRONMENT" >> $GITHUB_ENV
+        echo BIN="target/${{ matrix.target }}/release/$NAME.exe" >> $GITHUB_ENV
+        echo DIST="$NAME-${{ matrix.target }}" >> $GITHUB_ENV
+        echo ARCHIVE="$DIST.zip" >> $GITHUB_ENV
+        echo AR="7z a" >> $GITHUB_ENV
+        echo CARGO="cargo" >> $GITHUB_ENV
+
+    - name: Setup compiler (aarch64/darwin)
+      if: matrix.os == 'darwin' && matrix.arch == 'aarch64'
+      shell: bash
+      run: |
+        xcrun -sdk macosx --show-sdk-path > /dev/null
+        xcrun -sdk macosx --show-sdk-platform-version > /dev/null
+        echo SDKROOT="$(xcrun -sdk macosx --show-sdk-path)" >> $GITHUB_ENV
+        echo MACOSX_DEPLOYMENT_TARGET="$(xcrun -sdk macosx --show-sdk-platform-version)" >> $GITHUB_ENV
+
+    - name: Setup compiler (aarch64/linux)
+      if: env.OS == 'linux' && env.ARCH == 'aarch64'
+      run: cargo install cross
+
+    - name: Build binary
+      run: ${{ env.CARGO }} build --verbose --release --target ${{ matrix.target }}
+
+    - name: Check binary
+      run: file "$BIN"
+
+    - name: Build archive
+      shell: bash
+      run: |
+        mkdir -p "$DIST"
+        cp "$BIN" "$DIST"
+        $AR "$ARCHIVE" "$DIST"
+
+    - name: Upload archive
+      uses: actions/upload-artifact@v3
+      with:
+        name: ${{ env.ARCHIVE }}
+        path: ${{ env.ARCHIVE }}
