@@ -8,10 +8,23 @@ jobs:
   unit_tests:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - run: cargo test --lib --verbose
+    - name: Fetch repository
+      uses: actions/checkout@v2
+
+    - name: Check toolchain
+      run: rustup show
+
+    - name: Run unit tests
+      run: cargo test --lib --verbose
+
   integration_tests:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - run: cargo test --test integration_tests --verbose
+    - name: Fetch repository
+      uses: actions/checkout@v2
+
+    - name: Check toolchain
+      run: rustup show
+
+    - name: Run integration tests
+      run: cargo test --test integration_tests --verbose
