@@ -14,7 +14,7 @@ jobs:
       - name: Fetch repository
         uses: actions/checkout@v2
 
-      - name: Show toolchain
+      - name: Check toolchain
         run: rustup show
 
       - name: Install target toolchain
@@ -23,8 +23,8 @@ jobs:
       - name: Set environment variables
         shell: bash
         run: |
-          xcrun -sdk macosx --show-sdk-path
-          xcrun -sdk macosx --show-sdk-platform-version
+          xcrun -sdk macosx --show-sdk-path > /dev/null
+          xcrun -sdk macosx --show-sdk-platform-version > /dev/null
 
           echo SDKROOT="$(xcrun -sdk macosx --show-sdk-path)" >> $GITHUB_ENV
           echo MACOSX_DEPLOYMENT_TARGET="$(xcrun -sdk macosx --show-sdk-platform-version)" >> $GITHUB_ENV
@@ -41,17 +41,18 @@ jobs:
       - name: Build archive
         shell: bash
         run: |
-          ARCHIVE=wasmfmt-${{ env.TARGET }}
-          mkdir -p $ARCHIVE
-          cp target/${{ env.TARGET }}/release/wasmfmt $ARCHIVE
-          tar czf "$ARCHIVE.tar.gz" "$ARCHIVE"
-          echo ASSET="$ARCHIVE.tar.gz" >> $GITHUB_ENV
+          NAME=wasmfmt-${{ env.TARGET }}
+          echo ARCHIVE="$NAME.tar.gz" >> $GITHUB_ENV
+
+          mkdir -p $NAME
+          cp target/${{ env.TARGET }}/release/wasmfmt $NAME
+          tar czf "$NAME.tar.gz" "$NAME"
 
       - name: Upload archive
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ env.ASSET }}
-          path: ${{ env.ASSET }}
+          name: ${{ env.ARCHIVE }}
+          path: ${{ env.ARCHIVE }}
 
   build-x86_64-apple-darwin:
     name: build-x86_64-apple-darwin
@@ -62,8 +63,11 @@ jobs:
       - name: Fetch repository
         uses: actions/checkout@v2
 
-      - name: Show toolchain
+      - name: Check toolchain
         run: rustup show
+
+      - name: Install target toolchain
+        run: rustup target add ${{ env.TARGET }}
 
       - name: Build binary
         run: cargo build --release --target ${{ env.TARGET }}
@@ -74,17 +78,18 @@ jobs:
       - name: Build archive
         shell: bash
         run: |
-          ARCHIVE=wasmfmt-${{ env.TARGET }}
-          mkdir -p $ARCHIVE
-          cp target/${{ env.TARGET }}/release/wasmfmt $ARCHIVE
-          tar czf "$ARCHIVE.tar.gz" "$ARCHIVE"
-          echo ASSET="$ARCHIVE.tar.gz" >> $GITHUB_ENV
+          NAME=wasmfmt-${{ env.TARGET }}
+          echo ARCHIVE="$NAME.tar.gz" >> $GITHUB_ENV
+
+          mkdir -p $NAME
+          cp target/${{ env.TARGET }}/release/wasmfmt $NAME
+          tar czf "$NAME.tar.gz" "$NAME"
 
       - name: Upload archive
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ env.ASSET }}
-          path: ${{ env.ASSET }}
+          name: ${{ env.ARCHIVE }}
+          path: ${{ env.ARCHIVE }}
 
   build-aarch64-linux-gnu:
     name: build-aarch64-linux-gnu
@@ -95,7 +100,7 @@ jobs:
       - name: Fetch repository
         uses: actions/checkout@v2
 
-      - name: Show toolchain
+      - name: Check toolchain
         run: rustup show
 
       - name: Install target toolchain
@@ -116,17 +121,18 @@ jobs:
       - name: Build archive
         shell: bash
         run: |
-          ARCHIVE=wasmfmt-${{ env.TARGET }}
-          mkdir -p $ARCHIVE
-          cp target/${{ env.TARGET }}/release/wasmfmt $ARCHIVE
-          tar czf "$ARCHIVE.tar.gz" "$ARCHIVE"
-          echo ASSET="$ARCHIVE.tar.gz" >> $GITHUB_ENV
+          NAME=wasmfmt-${{ env.TARGET }}
+          echo ARCHIVE="$NAME.tar.gz" >> $GITHUB_ENV
+
+          mkdir -p $NAME
+          cp target/${{ env.TARGET }}/release/wasmfmt $NAME
+          tar czf "$NAME.tar.gz" "$NAME"
 
       - name: Upload archive
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ env.ASSET }}
-          path: ${{ env.ASSET }}
+          name: ${{ env.ARCHIVE }}
+          path: ${{ env.ARCHIVE }}
 
   build-x86_64-linux-gnu:
     name: build-x86_64-linux-gnu
@@ -137,8 +143,11 @@ jobs:
       - name: Fetch repository
         uses: actions/checkout@v2
 
-      - name: Show toolchain
+      - name: Check toolchain
         run: rustup show
+
+      - name: Install target toolchain
+        run: rustup target add ${{ env.TARGET }}
 
       - name: Build binary
         run: cargo build --verbose --release --target ${{ env.TARGET }}
@@ -149,17 +158,18 @@ jobs:
       - name: Build archive
         shell: bash
         run: |
-          ARCHIVE=wasmfmt-${{ env.TARGET }}
-          mkdir -p $ARCHIVE
-          cp target/${{ env.TARGET }}/release/wasmfmt $ARCHIVE
-          tar czf "$ARCHIVE.tar.gz" "$ARCHIVE"
-          echo ASSET="$ARCHIVE.tar.gz" >> $GITHUB_ENV
+          NAME=wasmfmt-${{ env.TARGET }}
+          echo ARCHIVE="$NAME.tar.gz" >> $GITHUB_ENV
+
+          mkdir -p $NAME
+          cp target/${{ env.TARGET }}/release/wasmfmt $NAME
+          tar czf "$NAME.tar.gz" "$NAME"
 
       - name: Upload archive
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ env.ASSET }}
-          path: ${{ env.ASSET }}
+          name: ${{ env.ARCHIVE }}
+          path: ${{ env.ARCHIVE }}
 
   build-aarch64-linux-musl:
     name: build-aarch64-linux-musl
@@ -170,7 +180,7 @@ jobs:
       - name: Fetch repository
         uses: actions/checkout@v2
 
-      - name: Show toolchain
+      - name: Check toolchain
         run: rustup show
 
       - name: Install target toolchain
@@ -191,17 +201,18 @@ jobs:
       - name: Build archive
         shell: bash
         run: |
-          ARCHIVE=wasmfmt-${{ env.TARGET }}
-          mkdir -p $ARCHIVE
-          cp target/${{ env.TARGET }}/release/wasmfmt $ARCHIVE
-          tar czf "$ARCHIVE.tar.gz" "$ARCHIVE"
-          echo ASSET="$ARCHIVE.tar.gz" >> $GITHUB_ENV
+          NAME=wasmfmt-${{ env.TARGET }}
+          echo ARCHIVE="$NAME.tar.gz" >> $GITHUB_ENV
+
+          mkdir -p $NAME
+          cp target/${{ env.TARGET }}/release/wasmfmt $NAME
+          tar czf "$NAME.tar.gz" "$NAME"
 
       - name: Upload archive
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ env.ASSET }}
-          path: ${{ env.ASSET }}
+          name: ${{ env.ARCHIVE }}
+          path: ${{ env.ARCHIVE }}
 
   build-x86_64-linux-musl:
     name: build-x86_64-linux-musl
@@ -212,7 +223,7 @@ jobs:
       - name: Fetch repository
         uses: actions/checkout@v2
 
-      - name: Show toolchain
+      - name: Check toolchain
         run: rustup show
 
       - name: Install target toolchain
@@ -227,17 +238,18 @@ jobs:
       - name: Build archive
         shell: bash
         run: |
-          ARCHIVE=wasmfmt-${{ env.TARGET }}
-          mkdir -p $ARCHIVE
-          cp target/${{ env.TARGET }}/release/wasmfmt $ARCHIVE
-          tar czf "$ARCHIVE.tar.gz" "$ARCHIVE"
-          echo ASSET="$ARCHIVE.tar.gz" >> $GITHUB_ENV
+          NAME=wasmfmt-${{ env.TARGET }}
+          echo ARCHIVE="$NAME.tar.gz" >> $GITHUB_ENV
+
+          mkdir -p $NAME
+          cp target/${{ env.TARGET }}/release/wasmfmt $NAME
+          tar czf "$NAME.tar.gz" "$NAME"
 
       - name: Upload archive
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ env.ASSET }}
-          path: ${{ env.ASSET }}
+          name: ${{ env.ARCHIVE }}
+          path: ${{ env.ARCHIVE }}
 
   build-aarch64-windows-msvc:
     name: build-aarch64-windows-msvc
@@ -248,7 +260,7 @@ jobs:
       - name: Fetch repository
         uses: actions/checkout@v2
 
-      - name: Show toolchain
+      - name: Check toolchain
         run: rustup show
 
       - name: Install target toolchain
@@ -263,17 +275,18 @@ jobs:
       - name: Build archive
         shell: bash
         run: |
-          ARCHIVE=wasmfmt-${{ env.TARGET }}
-          mkdir -p "$ARCHIVE"
-          cp "target/${{ env.TARGET }}/release/wasmfmt.exe" "$ARCHIVE"
-          7z a "$ARCHIVE.zip" "$ARCHIVE"
-          echo ASSET="$ARCHIVE.zip" >> $GITHUB_ENV
+          NAME=wasmfmt-${{ env.TARGET }}
+          echo ARCHIVE="$NAME.zip" >> $GITHUB_ENV
+
+          mkdir -p "$NAME"
+          cp "target/${{ env.TARGET }}/release/wasmfmt.exe" "$NAME"
+          7z a "$NAME.zip" "$NAME"
 
       - name: Upload archive
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ env.ASSET }}
-          path: ${{ env.ASSET }}
+          name: ${{ env.ARCHIVE }}
+          path: ${{ env.ARCHIVE }}
 
 
   build-x86_64-windows-msvc:
@@ -285,8 +298,11 @@ jobs:
       - name: Fetch repository
         uses: actions/checkout@v2
 
-      - name: Show toolchain
+      - name: Check toolchain
         run: rustup show
+
+      - name: Install target toolchain
+        run: rustup target add ${{ env.TARGET }}
 
       - name: Build binary
         run: cargo build --verbose --release --target ${{ env.TARGET }}
@@ -297,14 +313,15 @@ jobs:
       - name: Build archive
         shell: bash
         run: |
-          ARCHIVE=wasmfmt-${{ env.TARGET }}
-          mkdir -p "$ARCHIVE"
-          cp "target/${{ env.TARGET }}/release/wasmfmt.exe" "$ARCHIVE"
-          7z a "$ARCHIVE.zip" "$ARCHIVE"
-          echo ASSET="$ARCHIVE.zip" >> $GITHUB_ENV
+          NAME=wasmfmt-${{ env.TARGET }}
+          echo ARCHIVE="$NAME.zip" >> $GITHUB_ENV
+
+          mkdir -p "$NAME"
+          cp "target/${{ env.TARGET }}/release/wasmfmt.exe" "$NAME"
+          7z a "$NAME.zip" "$NAME"
 
       - name: Upload archive
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ env.ASSET }}
-          path: ${{ env.ASSET }}
+          name: ${{ env.ARCHIVE }}
+          path: ${{ env.ARCHIVE }}
