@@ -13,32 +13,45 @@ jobs:
     uses: ./.github/workflows/test.yml
 
   build:
-    uses: ./.github/workflows/build.yml
+    name: build
+    runs-on: ubuntu-22.04
+    steps:
+    - name: Parse version
+      run: |
+        VERSION=${GITHUB_REF#refs/tags/}
+        echo "VERSION: $VERSION"
+        echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+    - name: Run builds
+      uses: ./.github/workflows/build.yml
+      with:
+        version: ${{ env.VERSION }}
 
   release:
     name: release
     runs-on: ubuntu-22.04
     needs: [test, build]
     steps:
-      - name: Parse version tag
-        run: |
-          echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
-          echo "Version: ${{ env.VERSION }}"
+    - name: Parse version
+      run: |
+        VERSION=${GITHUB_REF#refs/tags/}
+        echo "VERSION: $VERSION"
+        echo "VERSION=$VERSION" >> $GITHUB_ENV
 
-      - name: Download artifacts
-        uses: actions/download-artifact@v3
-        with:
-          path: artifacts
+    - name: Download artifacts
+      uses: actions/download-artifact@v3
+      with:
+        path: artifacts
 
-      - name: Create GitHub release
-        id: release
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: ${{ env.VERSION }}
-          files: artifacts/**/*
-          fail_on_unmatched_files: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Create GitHub release
+      id: release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ env.VERSION }}
+        files: artifacts/**/*
+        fail_on_unmatched_files: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   publish:
     runs-on: ubuntu-22.04
