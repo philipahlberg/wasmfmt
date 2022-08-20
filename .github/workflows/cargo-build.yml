@@ -173,6 +173,9 @@ jobs:
       - name: Show toolchain
         run: rustup show
 
+      - name: Install target toolchain
+        run: rustup target add ${{ env.TARGET }}
+
       - name: Build binary
         run: cargo build --verbose --release --target ${{ env.TARGET }}
 
