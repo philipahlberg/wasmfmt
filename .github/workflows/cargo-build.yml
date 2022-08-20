@@ -26,7 +26,9 @@ jobs:
           xcrun -sdk macosx --show-sdk-path
           SDKROOT=$(xcrun -sdk macosx --show-sdk-path)
           echo "SDK Root: $SDKROOT"
+          xcrun -sdk macosx --show-sdk-path
           MACOSX_DEPLOYMENT_TARGET=$(xcrun -sdk macosx --show-sdk-platform-version)
+          echo "Deployment Target: $MACOSX_DEPLOYMENT_TARGET"
           cargo build --target ${{ env.TARGET }}
 
       - name: Build archive
