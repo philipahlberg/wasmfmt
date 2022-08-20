@@ -1,0 +1,32 @@
+name: release
+on:
+  push:
+    tags:
+    - "v[0-9]+.[0-9]+.[0-9]+"
+jobs:
+  build-assets:
+    uses: ./.github/workflows/cargo-build.yml
+
+  create-release:
+    name: create-release
+    runs-on: ubuntu-22.04
+    needs: [build-assets]
+    steps:
+      - name: Parse version tag
+        run: |
+          echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+          echo "Version: ${{ env.VERSION }}"
+
+      - name: Download artifacts
+        uses: actions/download-artifacts@v3
+        with:
+          path: artifacts
+
+      - name: Create GitHub release
+        id: release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ env.VERSION }}
+          files: artifacts/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
