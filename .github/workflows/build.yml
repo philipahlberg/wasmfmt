@@ -1,6 +1,8 @@
 name: build
+
 on:
   workflow_call:
+
 jobs:
   aarch64-apple-darwin:
     name: aarch64-apple-darwin
