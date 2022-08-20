@@ -113,7 +113,7 @@ jobs:
       shell: bash
       run: |
         NAME=wasmfmt
-        echo BIN="target/${{ matrix.target }}/release/$NAME.exe" >> $GITHUB_ENV
+        echo BIN="target/${{ matrix.target }}/release/$NAME" >> $GITHUB_ENV
         echo DIST="$NAME-${{ matrix.target }}" >> $GITHUB_ENV
         echo ARCHIVE="$NAME-${{ matrix.target }}.zip" >> $GITHUB_ENV
         echo ZIP="7z a" >> $GITHUB_ENV
