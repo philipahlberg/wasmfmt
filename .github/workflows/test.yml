@@ -1,0 +1,29 @@
+name: cargo test
+
+on:
+  workflow_call:
+
+jobs:
+  unit_tests:
+    runs-on: ubuntu-22.04
+    steps:
+    - name: Fetch repository
+      uses: actions/checkout@v2
+
+    - name: Check toolchain
+      run: rustup show
+
+    - name: Run unit tests
+      run: cargo test --lib --verbose
+
+  integration_tests:
+    runs-on: ubuntu-22.04
+    steps:
+    - name: Fetch repository
+      uses: actions/checkout@v2
+
+    - name: Check toolchain
+      run: rustup show
+
+    - name: Run integration tests
+      run: cargo test --test integration_tests --verbose

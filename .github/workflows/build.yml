@@ -1,0 +1,175 @@
+name: build
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        type: string
+        required: true
+
+jobs:
+  build:
+    name: build
+    strategy:
+      matrix:
+        target:
+          - aarch64-unknown-linux-gnu
+          - x86_64-unknown-linux-gnu
+          - aarch64-unknown-linux-musl
+          - x86_64-unknown-linux-musl
+          - aarch64-apple-darwin
+          - x86_64-apple-darwin
+          - aarch64-pc-windows-msvc
+          - x86_64-pc-windows-msvc
+
+        include:
+          - target: aarch64-unknown-linux-gnu
+            host: ubuntu-22.04
+            arch: aarch64
+            vendor: unknown
+            os: linux
+            environment: gnu
+
+          - target: x86_64-unknown-linux-gnu
+            host: ubuntu-22.04
+            arch: x86_64
+            vendor: unknown
+            os: linux
+            environment: gnu
+
+          - target: aarch64-unknown-linux-musl
+            host: ubuntu-22.04
+            arch: aarch64
+            vendor: unknown
+            os: linux
+            environment: musl
+
+          - target: x86_64-unknown-linux-musl
+            host: ubuntu-22.04
+            arch: x86_64
+            vendor: unknown
+            os: linux
+            environment: musl
+
+          - target: aarch64-apple-darwin
+            host: macos-12
+            arch: aarch64
+            vendor: apple
+            os: darwin
+            environment: unknown
+
+          - target: x86_64-apple-darwin
+            host: macos-12
+            arch: x86_64
+            vendor: apple
+            os: darwin
+            environment: unknown
+
+          - target: aarch64-pc-windows-msvc
+            host: windows-2022
+            arch: aarch64
+            vendor: pc
+            os: windows
+            environment: msvc
+
+          - target: x86_64-pc-windows-msvc
+            host: windows-2022
+            arch: x86_64
+            vendor: pc
+            os: windows
+            environment: msvc
+
+    runs-on: ${{ matrix.host }}
+    steps:
+    - name: Fetch repository
+      uses: actions/checkout@v2
+
+    - name: Check toolchain
+      run: rustup show
+
+    - name: Install target toolchain
+      run: rustup target add ${{ matrix.target }}
+
+    - name: Setup environment variables (darwin)
+      if: matrix.os == 'darwin'
+      shell: bash
+      run: |
+        NAME=wasmfmt
+        echo BIN="target/${{ matrix.target }}/release/$NAME" >> $GITHUB_ENV
+        echo DIST="$NAME-${{ matrix.target }}-${{ inputs.version }}" >> $GITHUB_ENV
+        echo ARCHIVE="$NAME-${{ matrix.target }}.tar.gz" >> $GITHUB_ENV
+        echo ZIP="tar czf" >> $GITHUB_ENV
+        echo BUILDER="cargo" >> $GITHUB_ENV
+
+    - name: Setup environment variables (linux)
+      if: matrix.os == 'linux'
+      shell: bash
+      run: |
+        NAME=wasmfmt
+        echo BIN="target/${{ matrix.target }}/release/$NAME" >> $GITHUB_ENV
+        echo DIST="$NAME-${{ matrix.target }}-${{ inputs.version }}" >> $GITHUB_ENV
+        echo ARCHIVE="$NAME-${{ matrix.target }}.tar.gz" >> $GITHUB_ENV
+        echo ZIP="tar czf" >> $GITHUB_ENV
+        echo BUILDER="cargo" >> $GITHUB_ENV
+
+    - name: Setup environment variables (windows)
+      if: matrix.os == 'windows'
+      shell: bash
+      run: |
+        NAME=wasmfmt
+        echo BIN="target/${{ matrix.target }}/release/$NAME" >> $GITHUB_ENV
+        echo DIST="$NAME-${{ matrix.target }}-${{ inputs.version }}" >> $GITHUB_ENV
+        echo ARCHIVE="$NAME-${{ matrix.target }}.zip" >> $GITHUB_ENV
+        echo ZIP="7z a" >> $GITHUB_ENV
+        echo BUILDER="cargo" >> $GITHUB_ENV
+
+    - name: Check environment variables
+      shell: bash
+      run: |
+        echo "BIN: $BIN"
+        echo "DIST: $DIST"
+        echo "ARCHIVE: $ARCHIVE"
+        echo "AR: $AR"
+        echo "BUILDER: $BUILDER"
+
+    - name: Setup compiler (aarch64/darwin)
+      if: matrix.os == 'darwin' && matrix.arch == 'aarch64'
+      shell: bash
+      run: |
+        xcrun -sdk macosx --show-sdk-path > /dev/null
+        xcrun -sdk macosx --show-sdk-platform-version > /dev/null
+
+        SDKROOT="$(xcrun -sdk macosx --show-sdk-path)"
+        MACOSX_DEPLOYMENT_TARGET="$(xcrun -sdk macosx --show-sdk-platform-version)"
+
+        echo "SDKROOT: $SDKROOT"
+        echo "MACOSX_DEPLOYMENT_TARGET: $MACOSX_DEPLOYMENT_TARGET"
+
+        echo SDKROOT="$SDKROOT" >> $GITHUB_ENV
+        echo MACOSX_DEPLOYMENT_TARGET="$MACOSX_DEPLOYMENT_TARGET" >> $GITHUB_ENV
+
+    - name: Setup compiler (aarch64/linux)
+      if: matrix.os == 'linux' && matrix.arch == 'aarch64'
+      shell: bash
+      run: |
+        cargo install cross
+        echo BUILDER="cross" >> $GITHUB_ENV
+
+    - name: Build binary
+      run: ${{ env.BUILDER }} build --verbose --release --target ${{ matrix.target }}
+
+    - name: Check binary
+      run: file ${{ env.BIN }}
+
+    - name: Build archive
+      shell: bash
+      run: |
+        mkdir -p "$DIST"
+        cp "$BIN" "$DIST"
+        ${{ env.ZIP }} "$ARCHIVE" "$DIST"
+
+    - name: Upload archive
+      uses: actions/upload-artifact@v3
+      with:
+        name: ${{ env.ARCHIVE }}
+        path: ${{ env.ARCHIVE }}

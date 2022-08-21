@@ -1,0 +1,64 @@
+name: tag
+
+on:
+  push:
+    tags:
+    - "v[0-9]+.[0-9]+.[0-9]+"
+
+jobs:
+  check:
+    uses: ./.github/workflows/check.yml
+
+  test:
+    uses: ./.github/workflows/test.yml
+
+  parse:
+    name: parse
+    outputs:
+      version: ${{ env.VERSION }}
+    runs-on: ubuntu-22.04
+    steps:
+    - name: Parse version
+      run: |
+        VERSION=${GITHUB_REF#refs/tags/}
+        echo "VERSION: $VERSION"
+        echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+  build:
+    name: build
+    needs: [parse]
+    uses: ./.github/workflows/build.yml
+    with:
+      version: ${{ needs.parse.outputs.version }}
+
+  release:
+    name: release
+    runs-on: ubuntu-22.04
+    needs: [parse, test, build]
+    steps:
+    - name: Download artifacts
+      uses: actions/download-artifact@v3
+      with:
+        path: artifacts
+
+    - name: Create GitHub release
+      id: release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ needs.parse.outputs.version }}
+        files: artifacts/**/*
+        fail_on_unmatched_files: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  publish:
+    runs-on: ubuntu-22.04
+    needs: [test]
+    steps:
+    - name: Fetch repository
+      uses: actions/checkout@v2
+
+    - name: Publish crate
+      run: cargo publish
+      env:
+        CARGO_REGISTRY_TOKEN: ${{ secrets.CRATESIO_TOKEN }}

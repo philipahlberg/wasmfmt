@@ -33,3 +33,6 @@ path = "src/main.rs"
 [[bench]]
 name = "fmt"
 harness = false
+
+[profile.release]
+strip = "symbols"
