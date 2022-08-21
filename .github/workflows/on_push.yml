@@ -12,8 +12,3 @@ jobs:
 
   test:
     uses: ./.github/workflows/test.yml
-
-  build:
-    uses: ./.github/workflows/build.yml
-    with:
-      version: v0.0.0
