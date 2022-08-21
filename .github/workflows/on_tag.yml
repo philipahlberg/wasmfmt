@@ -12,35 +12,30 @@ jobs:
   test:
     uses: ./.github/workflows/test.yml
 
-  build:
-    name: build
+  parse:
+    name: parse
+    outputs:
+      version: ${{ env.VERSION }}
     runs-on: ubuntu-22.04
     steps:
-    - name: Fetch repository
-      uses: actions/checkout@v2
-
     - name: Parse version
       run: |
         VERSION=${GITHUB_REF#refs/tags/}
         echo "VERSION: $VERSION"
         echo "VERSION=$VERSION" >> $GITHUB_ENV
 
-    - name: Run builds
-      uses: ./.github/workflows/build.yml
-      with:
-        version: ${{ env.VERSION }}
+  build:
+    name: build
+    needs: [parse]
+    uses: ./.github/workflows/build.yml
+    with:
+      version: ${{ needs.parse.outputs.version }}
 
   release:
     name: release
     runs-on: ubuntu-22.04
-    needs: [test, build]
+    needs: [parse, test, build]
     steps:
-    - name: Parse version
-      run: |
-        VERSION=${GITHUB_REF#refs/tags/}
-        echo "VERSION: $VERSION"
-        echo "VERSION=$VERSION" >> $GITHUB_ENV
-
     - name: Download artifacts
       uses: actions/download-artifact@v3
       with:
@@ -50,7 +45,7 @@ jobs:
       id: release
       uses: softprops/action-gh-release@v1
       with:
-        tag_name: ${{ env.VERSION }}
+        tag_name: ${{ needs.parse.outputs.version }}
         files: artifacts/**/*
         fail_on_unmatched_files: true
       env:
