@@ -16,6 +16,9 @@ jobs:
     name: build
     runs-on: ubuntu-22.04
     steps:
+    - name: Fetch repository
+      uses: actions/checkout@v2
+
     - name: Parse version
       run: |
         VERSION=${GITHUB_REF#refs/tags/}
