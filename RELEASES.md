@@ -1,9 +1,9 @@
-## Version 0.3.0 - *Not yet released*
+## Version 0.2.4 - *Not yet released*
 =============================
 
 ### Added
 
-- [Binaries for multiple platforms are now distributed with each release][78]
+- [Add GitHub release actions][78]
 
 [78]: https://github.com/philipahlberg/wasmfmt/pull/78
 
