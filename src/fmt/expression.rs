@@ -1,5 +1,5 @@
 use super::{Fmt, Formatter};
-use wast::Expression;
+use wast::core::Expression;
 
 impl<'src> Fmt for &Expression<'src> {
     fn fmt(&self, formatter: &mut Formatter) {

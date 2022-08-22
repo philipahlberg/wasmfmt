@@ -1,7 +1,7 @@
 use super::utils::{expr_is_const, id_is_gensym, index_is_default};
 use super::{Fmt, Formatter};
-use wast::{
-    Elem, ElemKind, ElemPayload, HeapType, Index, Limits, RefType, Table, TableKind, TableType,
+use wast::core::{
+    Elem, ElemKind, ElemPayload, HeapType, Limits, RefType, Table, TableKind, TableType,
 };
 
 impl<'src> Fmt for &Table<'src> {
@@ -72,10 +72,11 @@ impl<'src> Fmt for &RefType<'src> {
             }
             HeapType::Extern => unimplemented!(),
             HeapType::Any => unimplemented!(),
-            HeapType::Exn => unimplemented!(),
             HeapType::Eq => unimplemented!(),
             HeapType::I31 => unimplemented!(),
             HeapType::Index(..) => unimplemented!(),
+            HeapType::Array => unimplemented!(),
+            HeapType::Data => unimplemented!(),
         }
     }
 }
@@ -106,9 +107,8 @@ impl<'src> Fmt for &ElemKind<'src> {
             ElemKind::Passive => todo!(),
             ElemKind::Declared => todo!(),
             ElemKind::Active { table, offset } => {
-                let index = table.unwrap_index();
-                if !index_is_default(index) {
-                    formatter.fmt(index);
+                if !index_is_default(table) {
+                    formatter.fmt(table);
                     formatter.write(" ");
                 }
                 if expr_is_const(offset) {
@@ -127,11 +127,7 @@ impl<'src> Fmt for &ElemPayload<'src> {
     fn fmt(&self, formatter: &mut Formatter) {
         match self {
             ElemPayload::Indices(refs) => {
-                let indices: Vec<Index<'src>> = refs
-                    .iter()
-                    .map(|item_ref| *item_ref.unwrap_index())
-                    .collect();
-                formatter.fmt(&indices);
+                formatter.fmt(refs);
             }
             ElemPayload::Exprs { .. } => unimplemented!(),
         }

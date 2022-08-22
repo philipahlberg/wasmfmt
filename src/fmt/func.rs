@@ -1,11 +1,8 @@
-use super::utils::{
-    fmt_long_expression, id_is_gensym, inline_export_is_empty, inline_import_is_empty,
-    ty_use_is_empty,
-};
+use super::utils::{fmt_long_expression, id_is_gensym, inline_export_is_empty, ty_use_is_empty};
 use super::{Fmt, Formatter};
-use wast::{
-    kw, Func, FuncKind, FunctionType, Id, ItemRef, Local, NameAnnotation, TypeUse, ValType,
-};
+use wast::core::{Func, FuncKind, FunctionType, Local, TypeUse, ValType};
+use wast::kw;
+use wast::token::{Id, ItemRef, NameAnnotation};
 
 impl<'src> Fmt for &Func<'src> {
     fn fmt(&self, formatter: &mut Formatter) {
@@ -22,10 +19,8 @@ impl<'src> Fmt for &Func<'src> {
             formatter.fmt(&self.exports);
         }
         if let FuncKind::Import(inline_import) = &self.kind {
-            if !inline_import_is_empty(inline_import) {
-                formatter.write(" ");
-                formatter.fmt(inline_import);
-            }
+            formatter.write(" ");
+            formatter.fmt(inline_import);
         }
         if !ty_use_is_empty(&self.ty) {
             formatter.write(" ");
@@ -49,7 +44,9 @@ impl<'src> Fmt for &Func<'src> {
 impl<'src> Fmt for &TypeUse<'src, FunctionType<'src>> {
     fn fmt(&self, formatter: &mut Formatter) {
         if let Some(index) = &self.index {
+            formatter.write("(type ");
             formatter.fmt(index);
+            formatter.write(")");
         };
 
         if let Some(functy) = &self.inline {
@@ -72,7 +69,7 @@ impl<'src> Fmt for &TypeUse<'src, FunctionType<'src>> {
 impl<'src> Fmt for &ItemRef<'src, kw::r#type> {
     fn fmt(&self, formatter: &mut Formatter) {
         formatter.write("(type ");
-        formatter.fmt(self.unwrap_index());
+        formatter.fmt(&self.idx);
         formatter.write(")");
     }
 }
@@ -148,7 +145,6 @@ impl<'src> Fmt for &ValType<'src> {
             ValType::F64 => formatter.write("f64"),
             ValType::V128 => unimplemented!(),
             ValType::Ref(..) => unimplemented!(),
-            ValType::Rtt(..) => unimplemented!(),
         };
     }
 }

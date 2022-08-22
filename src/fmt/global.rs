@@ -1,6 +1,6 @@
 use super::utils::id_is_gensym;
 use super::{Fmt, Formatter};
-use wast::{Global, GlobalKind, GlobalType};
+use wast::core::{Global, GlobalKind, GlobalType};
 
 impl<'src> Fmt for &Global<'src> {
     fn fmt(&self, formatter: &mut Formatter) {

@@ -1,6 +1,6 @@
 use super::utils::id_is_gensym;
 use super::{Fmt, Formatter};
-use wast::{Import, InlineImport, ItemKind, ItemSig};
+use wast::core::{Import, InlineImport, ItemKind, ItemSig};
 
 impl<'src> Fmt for &Import<'src> {
     fn fmt(&self, formatter: &mut Formatter) {
@@ -8,10 +8,8 @@ impl<'src> Fmt for &Import<'src> {
         formatter.write("(import ");
         formatter.fmt(self.module);
         formatter.write(" ");
-        if let Some(field) = self.field {
-            formatter.fmt(field);
-            formatter.write(" ");
-        }
+        formatter.fmt(self.field);
+        formatter.write(" ");
         formatter.fmt(&self.item);
         formatter.write(")");
         formatter.end_line();
@@ -66,9 +64,7 @@ impl<'src> Fmt for &ItemSig<'src> {
                 formatter.fmt(global_ty);
                 formatter.write(")");
             }
-            ItemKind::Event(..) => unimplemented!(),
-            ItemKind::Module(..) => unimplemented!(),
-            ItemKind::Instance(..) => unimplemented!(),
+            ItemKind::Tag(..) => unimplemented!(),
         }
     }
 }
@@ -77,10 +73,8 @@ impl<'src> Fmt for &InlineImport<'src> {
     fn fmt(&self, formatter: &mut Formatter) {
         formatter.write("(import ");
         formatter.fmt(self.module);
-        if let Some(field) = self.field {
-            formatter.write(" ");
-            formatter.fmt(field);
-        };
+        formatter.write(" ");
+        formatter.fmt(self.field);
         formatter.write(")");
     }
 }

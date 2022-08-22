@@ -1,8 +1,8 @@
 use super::Formatter;
-use wast::{
-    BlockType, Expression, FunctionType, Id, Index, InlineExport, InlineImport, Instruction,
-    MemoryArg, TypeUse,
+use wast::core::{
+    BlockType, Expression, FunctionType, InlineExport, Instruction, MemoryArg, TypeUse,
 };
+use wast::token::{Id, Index};
 
 pub fn expr_is_const(expression: &Expression) -> bool {
     expression.instrs.len() == 1 && instr_is_const(&expression.instrs[0])
@@ -14,10 +14,6 @@ pub fn instr_is_const(instruction: &Instruction) -> bool {
 
 pub fn index_is_default(index: &Index) -> bool {
     matches!(index, Index::Num(0, ..))
-}
-
-pub fn inline_import_is_empty(import: &InlineImport) -> bool {
-    import.field.is_none()
 }
 
 pub fn inline_export_is_empty(export: &InlineExport) -> bool {
@@ -65,7 +61,7 @@ pub fn instr_is_block_start(instruction: &Instruction) -> bool {
 }
 
 pub fn memory_arg_is_valid(memory_arg: &MemoryArg) -> bool {
-    memory_index_is_valid(memory_arg.mem.unwrap_index())
+    memory_index_is_valid(&memory_arg.mem)
 }
 
 pub fn memory_index_is_valid(index: &Index) -> bool {
