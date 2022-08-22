@@ -1,6 +1,6 @@
 use super::utils::id_is_gensym;
 use super::{Fmt, Formatter};
-use wast::{FunctionType, Type, TypeDef};
+use wast::core::{FunctionType, Type, TypeDef};
 
 impl<'src> Fmt for &Type<'src> {
     fn fmt(&self, formatter: &mut Formatter) {
@@ -24,8 +24,6 @@ impl<'src> Fmt for &TypeDef<'src> {
             TypeDef::Func(functy) => functy.fmt(formatter),
             TypeDef::Struct(..) => unimplemented!(),
             TypeDef::Array(..) => unimplemented!(),
-            TypeDef::Module(..) => unimplemented!(),
-            TypeDef::Instance(..) => unimplemented!(),
         };
     }
 }

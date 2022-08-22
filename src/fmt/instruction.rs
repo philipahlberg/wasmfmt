@@ -1,6 +1,6 @@
 use super::utils::{bt_is_empty, instr_is_block_start, memory_arg_is_valid, ty_use_is_empty};
 use super::{Fmt, Formatter};
-use wast::{BlockType, BrTableIndices, Instruction, MemArg};
+use wast::core::{BlockType, BrTableIndices, Instruction, MemArg};
 
 impl<'src> Fmt for &Instruction<'src> {
     fn fmt(&self, formatter: &mut Formatter) {
@@ -56,14 +56,10 @@ fn instr_args(instruction: &Instruction) -> Option<String> {
         | Instruction::BrIf(index) => {
             formatter.fmt(index);
         }
-        Instruction::GlobalGet(index_or_ref) | Instruction::GlobalSet(index_or_ref) => {
-            let item_ref = &index_or_ref.0;
-            let index = item_ref.unwrap_index();
+        Instruction::GlobalGet(index) | Instruction::GlobalSet(index) => {
             formatter.fmt(index);
         }
-        Instruction::Call(index_or_ref) => {
-            let item_ref = &index_or_ref.0;
-            let index = item_ref.unwrap_index();
+        Instruction::Call(index) => {
             formatter.fmt(index);
         }
         Instruction::BrTable(indices) => {

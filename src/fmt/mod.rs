@@ -86,18 +86,17 @@ pub struct Options {
 /// Encodes all number literals in decimal notation.
 pub fn fmt(source: &str, options: Options) -> String {
     let buffer = ParseBuffer::new(source).expect("parse buffer");
-    let mut wat = parse::<Wat>(&buffer).expect("parse");
-    if options.resolve_names {
-        wat.module.resolve().expect("name resolution");
-    }
-    let mut formatter = Formatter::new();
-    wat.fmt(&mut formatter);
-    formatter.into()
-}
-
-impl<'src> Fmt for Wat<'src> {
-    fn fmt(&self, formatter: &mut Formatter) {
-        self.module.fmt(formatter)
+    let wat = parse::<Wat>(&buffer).expect("parse");
+    match wat {
+        Wat::Module(mut module) => {
+            if options.resolve_names {
+                module.resolve().expect("name resolution");
+            }
+            let mut formatter = Formatter::new();
+            module.fmt(&mut formatter);
+            formatter.into()
+        }
+        Wat::Component(..) => unimplemented!(),
     }
 }
 

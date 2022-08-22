@@ -1,6 +1,6 @@
 use super::start::Start;
 use super::{Fmt, Formatter};
-use wast::{Module, ModuleField, ModuleKind};
+use wast::core::{Module, ModuleField, ModuleKind};
 
 impl<'src> Fmt for Module<'src> {
     fn fmt(&self, formatter: &mut Formatter) {
@@ -43,12 +43,10 @@ impl<'src> Fmt for &ModuleField<'src> {
             ModuleField::Elem(element) => formatter.fmt(element),
             ModuleField::Export(export) => formatter.fmt(export),
             ModuleField::Import(import) => formatter.fmt(import),
-            ModuleField::Start(index) => formatter.fmt(&Start::new(*index.unwrap_index())),
-            ModuleField::Custom(..) => todo!(),
-            ModuleField::Event(..) => unimplemented!(),
-            ModuleField::Instance(..) => unimplemented!(),
-            ModuleField::NestedModule(..) => unimplemented!(),
-            ModuleField::Alias(..) => unimplemented!(),
+            ModuleField::Start(index) => formatter.fmt(&Start::new(*index)),
+            ModuleField::Custom(..) => unimplemented!(),
+            ModuleField::Rec(..) => unimplemented!(),
+            ModuleField::Tag(..) => unimplemented!(),
         };
     }
 }

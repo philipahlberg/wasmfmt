@@ -1,5 +1,5 @@
 use super::{Fmt, Formatter};
-use wast::Index;
+use wast::token::Index;
 
 pub struct Start<'src> {
     index: Index<'src>,

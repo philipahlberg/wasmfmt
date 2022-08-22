@@ -621,7 +621,7 @@ name = "utils"
 version = "0.0.0"
 dependencies = [
  "structopt",
- "wast",
+ "wast 32.0.0",
 ]
 
 [[package]]
@@ -702,6 +702,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6598dd0bd3c7d51095ff6531a5b23e02acdc81804e30d8f07afb77b7215a140a"
 
 [[package]]
+name = "wasm-encoder"
+version = "0.16.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d443c5a7daae71697d97ec12ad70b4fe8766d3a0f4db16158ac8b781365892f7"
+dependencies = [
+ "leb128",
+]
+
+[[package]]
 name = "wasmfmt"
 version = "0.2.3"
 dependencies = [
@@ -710,7 +719,7 @@ dependencies = [
  "pretty_assertions",
  "structopt",
  "unindent",
- "wast",
+ "wast 46.0.0",
 ]
 
 [[package]]
@@ -720,6 +729,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c24a3ee360d01d60ed0a0f960ab76a6acce64348cdb0bf8699c2a866fad57c7c"
 dependencies = [
  "leb128",
+]
+
+[[package]]
+name = "wast"
+version = "46.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ea0ab19660e3ea6891bba69167b9be40fad00fb1fe3dd39c5eebcee15607131b"
+dependencies = [
+ "leb128",
+ "memchr",
+ "unicode-width",
+ "wasm-encoder",
 ]
 
 [[package]]

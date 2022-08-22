@@ -1,6 +1,6 @@
 use super::utils::{id_is_gensym, index_is_default};
 use super::{Fmt, Formatter};
-use wast::{Data, DataKind, DataVal, Memory, MemoryKind, MemoryType};
+use wast::core::{Data, DataKind, DataVal, Memory, MemoryKind, MemoryType};
 
 impl<'src> Fmt for &Memory<'src> {
     fn fmt(&self, formatter: &mut Formatter) {
@@ -124,9 +124,8 @@ impl<'src> Fmt for &DataKind<'src> {
         match self {
             DataKind::Passive => todo!(),
             DataKind::Active { memory, offset } => {
-                let index = memory.unwrap_index();
-                if !index_is_default(index) {
-                    formatter.fmt(index);
+                if !index_is_default(memory) {
+                    formatter.fmt(memory);
                     formatter.write(" ");
                 }
                 formatter.fmt(offset);

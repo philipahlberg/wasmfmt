@@ -1,7 +1,13 @@
 use super::{Fmt, Formatter};
-use wast::{Float32, Float64};
+use wast::token::{Float32, Float64};
 
 impl Fmt for u32 {
+    fn fmt(&self, formatter: &mut Formatter) {
+        formatter.write(&self.to_string());
+    }
+}
+
+impl Fmt for u64 {
     fn fmt(&self, formatter: &mut Formatter) {
         formatter.write(&self.to_string());
     }

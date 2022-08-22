@@ -1,5 +1,5 @@
 use super::{Fmt, Formatter};
-use wast::{Id, Index};
+use wast::token::{Id, Index};
 
 impl<'src> Fmt for &Vec<Index<'src>> {
     fn fmt(&self, formatter: &mut Formatter) {
