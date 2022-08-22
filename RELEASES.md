@@ -4,8 +4,10 @@
 ### Added
 
 - [Add GitHub release actions][78]
+- [Update wast to v46.0.0][87]
 
 [78]: https://github.com/philipahlberg/wasmfmt/pull/78
+[87]: https://github.com/philipahlberg/wasmfmt/pull/87
 
 ## Version 0.2.3 - 2022-08-19
 =============================
