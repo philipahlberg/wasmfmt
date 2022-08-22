@@ -13,9 +13,9 @@ For more information on how to use the library, see the [API docs][docsrs-crate]
 To get `wasmfmt`, you have two options:
 
 1. Download a prebuilt binary from [the releases page][releases]. Binaries are distributed for the following platforms:
-    - Linux (x86_64 and ARM64)
+    - Linux (x86_64 and ARM64, GNU and musl)
     - MacOS (x86_64 and ARM64)
-    - Windows (x86_64)
+    - Windows (x86_64 and ARM64)
 2. Build the tool manually, either from [crates.io][cratesio] or directly from this repository.
 
 To install from [crates.io][cratesio-crate]:
