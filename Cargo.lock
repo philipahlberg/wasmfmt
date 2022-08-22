@@ -712,7 +712,7 @@ dependencies = [
 
 [[package]]
 name = "wasmfmt"
-version = "0.2.3"
+version = "0.2.4"
 dependencies = [
  "assert_matches",
  "criterion",
