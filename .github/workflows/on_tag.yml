@@ -7,10 +7,10 @@ on:
 
 jobs:
   check:
-    uses: ./.github/workflows/check.yml
+    uses: ./.github/workflows/_check.yml
 
   test:
-    uses: ./.github/workflows/test.yml
+    uses: ./.github/workflows/_test.yml
 
   parse:
     name: parse
@@ -27,7 +27,7 @@ jobs:
   build:
     name: build
     needs: [parse]
-    uses: ./.github/workflows/build.yml
+    uses: ./.github/workflows/_build.yml
     with:
       version: ${{ needs.parse.outputs.version }}
 
