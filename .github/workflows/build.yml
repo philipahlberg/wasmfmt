@@ -97,7 +97,7 @@ jobs:
         NAME=wasmfmt
         echo BIN="target/${{ matrix.target }}/release/$NAME" >> $GITHUB_ENV
         echo DIST="$NAME-${{ matrix.target }}-${{ inputs.version }}" >> $GITHUB_ENV
-        echo ARCHIVE="$NAME-${{ matrix.target }}.tar.gz" >> $GITHUB_ENV
+        echo ARCHIVE="$NAME-${{ matrix.target }}-${{ inputs.version }}.tar.gz" >> $GITHUB_ENV
         echo ZIP="tar czf" >> $GITHUB_ENV
         echo BUILDER="cargo" >> $GITHUB_ENV
 
@@ -108,7 +108,7 @@ jobs:
         NAME=wasmfmt
         echo BIN="target/${{ matrix.target }}/release/$NAME" >> $GITHUB_ENV
         echo DIST="$NAME-${{ matrix.target }}-${{ inputs.version }}" >> $GITHUB_ENV
-        echo ARCHIVE="$NAME-${{ matrix.target }}.tar.gz" >> $GITHUB_ENV
+        echo ARCHIVE="$NAME-${{ matrix.target }}-${{ inputs.version }}.tar.gz" >> $GITHUB_ENV
         echo ZIP="tar czf" >> $GITHUB_ENV
         echo BUILDER="cargo" >> $GITHUB_ENV
 
@@ -119,7 +119,7 @@ jobs:
         NAME=wasmfmt
         echo BIN="target/${{ matrix.target }}/release/$NAME" >> $GITHUB_ENV
         echo DIST="$NAME-${{ matrix.target }}-${{ inputs.version }}" >> $GITHUB_ENV
-        echo ARCHIVE="$NAME-${{ matrix.target }}.zip" >> $GITHUB_ENV
+        echo ARCHIVE="$NAME-${{ matrix.target }}-${{ inputs.version }}.zip" >> $GITHUB_ENV
         echo ZIP="7z a" >> $GITHUB_ENV
         echo BUILDER="cargo" >> $GITHUB_ENV
 
