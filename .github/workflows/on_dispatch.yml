@@ -1,0 +1,24 @@
+name: dispatch
+
+on:
+  workflow_dispatch:
+
+jobs:
+  parse:
+    name: parse
+    outputs:
+      version: ${{ env.VERSION }}
+    runs-on: ubuntu-22.04
+    steps:
+    - name: Parse version
+      run: |
+        VERSION=${GITHUB_SHA:0:7}
+        echo "VERSION: $VERSION"
+        echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+  build:
+    name: build
+    needs: [parse]
+    uses: ./.github/workflows/_build.yml
+    with:
+      version: ${{ needs.parse.outputs.version }}
